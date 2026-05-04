@@ -1,5 +1,6 @@
 ---
 import MainGridLayout from "../layouts/MainGridLayout.astro";
+import VideoCinema from "../components/video/VideoCinema.astro";
 ---
 
 <MainGridLayout
@@ -9,9 +10,25 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
 >
   <Fragment slot="head">
     <title th:text="${singlePage.spec.title + ' - ' + site.title}"></title>
+    <meta
+      th:if="${singlePage.spec.slug == 'videos'}"
+      name="referrer"
+      content="no-referrer"
+    />
   </Fragment>
 
-  <article class="card-base relative z-10 mb-4 w-full px-6 pb-8 pt-7 md:px-9">
+  <!-- Video Cinema -->
+  <div
+    th:if="${singlePage.metadata.name == 'videos' or singlePage.spec.slug == 'videos'}"
+  >
+    <VideoCinema />
+  </div>
+
+  <!-- Normal page content -->
+  <article
+    th:if="${singlePage.metadata.name != 'videos' and singlePage.spec.slug != 'videos'}"
+    class="card-base relative z-10 mb-4 w-full px-6 pb-8 pt-7 md:px-9"
+  >
     <h1
       class="onload-animation relative mb-5 text-3xl font-bold text-black/90 transition before:absolute before:-left-4.5 before:top-3 before:h-5 before:w-1 before:rounded-md before:bg-(--primary) dark:text-white/90 md:text-[2.25rem]/[2.75rem]"
       th:text="${singlePage.spec.title}"

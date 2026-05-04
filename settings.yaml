@@ -126,6 +126,8 @@ spec:
                   value: tag
                 - label: 音乐播放器
                   value: music
+                - label: 最近文章
+                  value: archives
                 - label: 自定义HTML
                   value: html
             - $formkit: text
@@ -329,3 +331,57 @@ spec:
           name: gongan_link
           label: 公安联网备案跳转链接
           value: https://beian.mps.gov.cn/#/query/webSearch
+
+    - group: video
+      label: 视频放映室
+      formSchema:
+        - $formkit: text
+          name: page_title
+          label: 页面标题
+          value: 视频放映室
+          help: "视频页面顶部显示的标题"
+        - $formkit: text
+          name: api_base
+          label: 解析接口地址
+          value: "/api/getVideo"
+          help: "本地解析服务的 API 路径，如 /api/getVideo（仅资源站类型使用）"
+        - $formkit: array
+          name: videos
+          label: 视频列表
+          value: []
+          children:
+            - $formkit: select
+              name: type
+              label: 视频来源
+              value: bilibili
+              options:
+                - label: Bilibili
+                  value: bilibili
+                - label: 资源站解析
+                  value: resolve
+            - $formkit: text
+              name: title
+              label: 标题
+              validation: "required"
+              help: "视频显示名称"
+            - $formkit: attachment
+              name: cover
+              label: 封面图
+              help: "留空则B站类型自动获取"
+            - $formkit: text
+              name: bvid
+              label: BV号
+              if: "$value.type === 'bilibili'"
+              validation: "required"
+              help: "B站视频BV号，如 BV1GJ411x7h7"
+            - $formkit: text
+              name: targetUrl
+              label: 资源站播放页地址
+              if: "$value.type === 'resolve'"
+              validation: "required"
+              help: "第三方影视网站播放页URL"
+            - $formkit: text
+              name: episodes
+              label: 分集地址
+              if: "$value.type === 'resolve'"
+              help: "用 | 分隔，格式：集名,URL。如：第1集,https://xxx.com/1|第2集,https://xxx.com/2"

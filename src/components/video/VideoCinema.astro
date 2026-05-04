@@ -1,0 +1,434 @@
+---
+/**
+ * Video Cinema Component
+ *
+ * Renders a video cinema page with support for:
+ * - Bilibili videos (iframe embedding, multi-part episodes)
+ * - Resource site videos (API resolution + DPlayer playback)
+ *
+ * Configuration: theme.config.video in settings.yaml
+ */
+---
+
+<section class="card-base onload-animation mb-4 px-6 py-6 md:px-9">
+  <div class="mb-6 flex flex-col gap-2">
+    <h1
+      class="text-3xl font-bold text-90"
+      th:text="${theme.config.video.page_title}"
+    >
+      Video Cinema
+    </h1>
+    <div class="mt-1 text-sm text-50">
+      <span
+        class="icon-[material-symbols--play-circle-outline] mr-1 text-base align-text-bottom"
+      >
+      </span>
+      <span id="video-count-text"></span>
+    </div>
+  </div>
+
+  <!-- Video list view -->
+  <div id="video-list-view">
+    <div id="video-grid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></div>
+    <div id="video-loading" class="py-12 text-center text-50">Loading...</div>
+    <div
+      id="video-empty"
+      class="py-12 text-center text-50"
+      style="display: none"
+    >
+      暂无视频
+    </div>
+  </div>
+
+  <!-- Video player view -->
+  <div id="video-player-view" style="display: none">
+    <button
+      id="player-back-btn"
+      class="btn-regular mb-4 h-9 rounded-lg px-4 text-sm flex items-center gap-2 transition hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active)"
+    >
+      <span class="icon-[material-symbols--arrow-back-rounded] text-[1.25rem]">
+      </span>
+      返回列表
+    </button>
+    <h2 id="player-title" class="text-xl font-bold text-90 mb-3"></h2>
+
+    <!-- Bilibili iframe player -->
+    <div
+      id="bili-player-wrapper"
+      class="bili-player-wrapper mb-4"
+      style="display: none"
+    >
+      <iframe
+        id="bili-player"
+        class="bili-player"
+        scrolling="no"
+        border="0"
+        frameborder="no"
+        framespacing="0"
+        allowfullscreen="true"></iframe>
+    </div>
+
+    <!-- DPlayer -->
+    <div
+      id="dplayer"
+      class="mb-4"
+      style="border-radius: 0.75rem; overflow: hidden; display: none"
+    >
+    </div>
+
+    <div
+      id="player-loading"
+      class="mb-4 text-center text-50"
+      style="display: none"
+    >
+      正在解析视频源，请稍候...
+    </div>
+    <div
+      id="player-error"
+      class="mb-4 text-center text-red-500"
+      style="display: none"
+    >
+    </div>
+    <div id="player-stats" class="text-sm text-50 mb-4"></div>
+
+    <!-- Episode selector -->
+    <div id="episode-selector" class="mb-4" style="display: none">
+      <h3 class="text-base font-bold text-75 mb-2">选集</h3>
+      <div id="episode-list" class="flex flex-wrap gap-2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- DPlayer CSS -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css"
+/>
+
+<!-- HLS.js + DPlayer -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js"
+></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"
+></script>
+
+<script
+  is:inline
+  define:vars={{
+    videoConfig: "${theme.config.video}",
+  }}
+>
+  (() => {
+    const configEl = document.getElementById("theme-config");
+    if (!configEl) return;
+    const themeConfig = JSON.parse(configEl.textContent);
+    const vc = themeConfig.video || {};
+    const videoList = vc.videos || [];
+    const apiBase = vc.api_base || "/api/getVideo";
+
+    const listView = document.getElementById("video-list-view");
+    const playerView = document.getElementById("video-player-view");
+    const grid = document.getElementById("video-grid");
+    const loadingEl = document.getElementById("video-loading");
+    const emptyEl = document.getElementById("video-empty");
+    const backBtn = document.getElementById("player-back-btn");
+    const playerTitle = document.getElementById("player-title");
+    const playerLoading = document.getElementById("player-loading");
+    const playerError = document.getElementById("player-error");
+    const playerStats = document.getElementById("player-stats");
+    const biliWrapper = document.getElementById("bili-player-wrapper");
+    const biliIframe = document.getElementById("bili-player");
+    const dplayerEl = document.getElementById("dplayer");
+    const episodeSelector = document.getElementById("episode-selector");
+    const episodeList = document.getElementById("episode-list");
+    const countText = document.getElementById("video-count-text");
+    let dp = null;
+    const biliMetaCache = {};
+
+    if (videoList.length === 0) {
+      loadingEl.style.display = "none";
+      emptyEl.style.display = "";
+      countText.textContent = "0 个视频";
+      return;
+    }
+
+    const bilibiliEntries = videoList.filter(
+      (e) => (e.type || "bilibili") === "bilibili",
+    );
+    countText.textContent = videoList.length + " 个视频";
+
+    function fmtDuration(s) {
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = Math.floor(s % 60);
+      return h > 0
+        ? h +
+            ":" +
+            String(m).padStart(2, "0") +
+            ":" +
+            String(sec).padStart(2, "0")
+        : m + ":" + String(sec).padStart(2, "0");
+    }
+    function fmtViews(n) {
+      if (n >= 1e8) return (n / 1e8).toFixed(1) + "亿";
+      if (n >= 1e4) return (n / 1e4).toFixed(1) + "万";
+      return String(n);
+    }
+
+    async function fetchBiliMeta(bvid) {
+      const r = await fetch("/bili-api/x/web-interface/view?bvid=" + bvid);
+      if (!r.ok) throw new Error("API " + r.status);
+      const j = await r.json();
+      if (j.code !== 0) throw new Error(j.message || "API error");
+      return j.data;
+    }
+
+    async function loadBiliCards() {
+      if (bilibiliEntries.length === 0) return;
+      const results = await Promise.allSettled(
+        bilibiliEntries.map((e) => fetchBiliMeta(e.bvid)),
+      );
+      results.forEach((res) => {
+        if (res.status !== "fulfilled") return;
+        biliMetaCache[res.value.bvid] = res.value;
+      });
+    }
+
+    function renderCards() {
+      loadingEl.style.display = "none";
+      videoList.forEach((entry, i) => {
+        let title = entry.title || "未命名";
+        let cover = entry.cover || "";
+        const isBili = (entry.type || "bilibili") === "bilibili";
+        const hasEp = entry.episodes && entry.episodes.trim();
+        const meta = isBili ? biliMetaCache[entry.bvid] : null;
+
+        if (!cover && meta) {
+          cover = meta.pic;
+          if (cover && cover.indexOf("//") === 0) cover = "https:" + cover;
+        }
+        if (!title && meta) title = meta.title;
+
+        let dur = "",
+          views = "",
+          badge = "";
+        if (meta) {
+          dur = fmtDuration(meta.duration);
+          views = fmtViews(meta.stat.view) + " 播放";
+          if (meta.videos > 1) badge = "P" + meta.videos;
+        }
+        if (hasEp && !badge) badge = "多集";
+
+        const card = document.createElement("div");
+        card.className = "video-card onload-animation";
+        card.style.animationDelay =
+          "calc(var(--content-delay, 0ms) + " + i * 60 + "ms)";
+        card.innerHTML =
+          '<div class="video-card-cover">' +
+          (cover
+            ? '<img src="' +
+              cover +
+              '" alt="' +
+              title.replace(/"/g, "&quot;") +
+              '" referrerpolicy="no-referrer" loading="lazy">'
+            : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span class="icon-[material-symbols--play-circle-outline] text-4xl text-white/30"></span></div>') +
+          (badge ? '<span class="video-card-badge">' + badge + "</span>" : "") +
+          '<span class="video-card-source">' +
+          (isBili ? "Bilibili" : "解析") +
+          "</span></div>" +
+          '<div class="video-card-info"><div class="video-card-title">' +
+          title +
+          "</div>" +
+          (views
+            ? '<div class="video-card-meta"><span class="icon-[material-symbols--play-arrow] text-xs mr-1 align-text-bottom"></span>' +
+              views +
+              "</div>"
+            : "") +
+          "</div>";
+        card.addEventListener("click", () => openPlayer(entry));
+        grid.appendChild(card);
+      });
+    }
+
+    function openPlayer(entry) {
+      const isBili = (entry.type || "bilibili") === "bilibili";
+      playerTitle.textContent =
+        entry.title ||
+        (isBili && biliMetaCache[entry.bvid]
+          ? biliMetaCache[entry.bvid].title
+          : "未命名");
+      playerStats.innerHTML = "";
+      playerError.style.display = "none";
+      episodeSelector.style.display = "none";
+      biliWrapper.style.display = "none";
+      dplayerEl.style.display = "none";
+
+      if (isBili) {
+        playBilibili(entry);
+      } else {
+        playResolve(entry);
+      }
+
+      listView.style.display = "none";
+      playerView.style.display = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      const url = new URL(window.location);
+      url.searchParams.set("idx", String(videoList.indexOf(entry)));
+      history.pushState({ idx: videoList.indexOf(entry) }, "", url);
+    }
+
+    function playBilibili(entry) {
+      const meta = biliMetaCache[entry.bvid];
+      const bvid = entry.bvid;
+      biliWrapper.style.display = "";
+      biliIframe.src =
+        "https://player.bilibili.com/player.html?bvid=" +
+        bvid +
+        "&autoplay=0&high_quality=1&danmaku=0";
+      if (dp) {
+        try {
+          dp.destroy();
+        } catch (e) {}
+        dp = null;
+      }
+
+      if (meta) {
+        playerStats.innerHTML =
+          '<span class="icon-[material-symbols--play-arrow] text-xs mr-1 align-text-bottom"></span>' +
+          fmtViews(meta.stat.view) +
+          ' 播放 <span class="ml-3 icon-[material-symbols--thumb-up-outline] text-xs mr-1 align-text-bottom"></span>' +
+          fmtViews(meta.stat.like) +
+          " 点赞";
+      }
+      if (meta && meta.videos > 1 && meta.pages && meta.pages.length > 1) {
+        episodeSelector.style.display = "";
+        episodeList.innerHTML = "";
+        meta.pages.forEach((page, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "episode-btn" + (idx === 0 ? " active" : "");
+          btn.textContent = page.part || "P" + (idx + 1);
+          btn.addEventListener("click", () => {
+            biliIframe.src =
+              "https://player.bilibili.com/player.html?bvid=" +
+              bvid +
+              "&page=" +
+              (idx + 1) +
+              "&autoplay=0&high_quality=1&danmaku=0";
+            episodeList
+              .querySelectorAll(".episode-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+          });
+          episodeList.appendChild(btn);
+        });
+      }
+    }
+
+    function playResolve(entry) {
+      dplayerEl.style.display = "";
+      if (dp) {
+        try {
+          dp.destroy();
+        } catch (e) {}
+        dp = null;
+      }
+      const episodes = parseEpisodes(entry);
+      if (episodes.length > 1) {
+        episodeSelector.style.display = "";
+        episodeList.innerHTML = "";
+        episodes.forEach((ep, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "episode-btn" + (idx === 0 ? " active" : "");
+          btn.textContent = ep.name;
+          btn.addEventListener("click", () => {
+            episodeList
+              .querySelectorAll(".episode-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            resolveAndPlay(ep.url);
+          });
+          episodeList.appendChild(btn);
+        });
+      }
+      resolveAndPlay(entry.targetUrl);
+    }
+
+    function resolveAndPlay(targetUrl) {
+      playerError.style.display = "none";
+      playerLoading.style.display = "";
+      const fullUrl = apiBase + "?targetUrl=" + encodeURIComponent(targetUrl);
+      fetch(fullUrl)
+        .then((r) => r.text())
+        .then((raw) => {
+          const result = JSON.parse(raw);
+          playerLoading.style.display = "none";
+          if (result.code === 0 && result.data && result.data.playUrl) {
+            if (dp) {
+              try {
+                dp.destroy();
+              } catch (e) {}
+            }
+            dp = new DPlayer({
+              container: dplayerEl,
+              autoplay: true,
+              theme: "#cba6f7",
+              video: { url: result.data.playUrl, type: "auto" },
+            });
+          } else {
+            playerError.textContent =
+              "解析失败: " +
+              (result.msg || "未知错误") +
+              " [code:" +
+              result.code +
+              "]";
+            playerError.style.display = "";
+          }
+        })
+        .catch((err) => {
+          playerLoading.style.display = "none";
+          playerError.textContent = "请求失败: " + err.message;
+          playerError.style.display = "";
+        });
+    }
+
+    function parseEpisodes(entry) {
+      if (!entry.episodes || !entry.episodes.trim())
+        return [{ name: "播放", url: entry.targetUrl }];
+      return entry.episodes.split("|").map((seg) => {
+        const parts = seg.split(",");
+        return {
+          name: (parts[0] || "播放").trim(),
+          url: (parts[1] || entry.targetUrl).trim(),
+        };
+      });
+    }
+
+    function showList() {
+      playerView.style.display = "none";
+      listView.style.display = "";
+      biliIframe.src = "";
+      if (dp) {
+        try {
+          dp.destroy();
+        } catch (e) {}
+        dp = null;
+      }
+      const url = new URL(window.location);
+      url.searchParams.delete("idx");
+      history.pushState({}, "", url);
+    }
+
+    backBtn.addEventListener("click", showList);
+    window.addEventListener("popstate", (e) => {
+      if (e.state && e.state.idx != null && videoList[e.state.idx])
+        openPlayer(videoList[e.state.idx]);
+      else showList();
+    });
+
+    // Initialize
+    loadBiliCards().then(renderCards);
+    const urlParams = new URLSearchParams(window.location.search);
+    const initIdx = parseInt(urlParams.get("idx"));
+    if (!isNaN(initIdx) && videoList[initIdx])
+      (renderCards(), openPlayer(videoList[initIdx]));
+  })();
+</script>

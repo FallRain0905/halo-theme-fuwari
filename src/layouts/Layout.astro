@@ -13,6 +13,7 @@ import "../styles/music-player.css";
 import "../styles/transition.css";
 import "../styles/scrollbar.css";
 import "../styles/photoswipe.css";
+import "../styles/video-cinema.css";
 import ConfigCarrier from "../components/ConfigCarrier.astro";
 import {
   AUTO_MODE,
@@ -66,6 +67,8 @@ const i18nInlineScript = `<script th:inline="javascript">
     "widget.music.progress": \`[(#{widget.music.progress})]\`,
     "widget.music.noCover": \`[(#{widget.music.noCover})]\`,
     "widget.music.cover": \`[(#{widget.music.cover})]\`,
+    "page.video.count": \`[(#{page.video.count})]\`,
+    "page.video.empty": \`[(#{page.video.empty})]\`,
   };
 </script>`;
 

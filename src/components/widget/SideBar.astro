@@ -36,6 +36,55 @@ const className = Astro.props.class;
             th:style="|animation-delay: calc(var(--content-delay) + ${widgetStat.index * 50}ms)|"
           />
         </div>
+        <div class="contents" th:case="'archives'">
+          <div
+            class="card-base pb-4 onload-animation"
+            th:style="|animation-delay: calc(var(--content-delay) + ${widgetStat.index * 50}ms)|"
+            th:with="recentPosts = ${postFinder.list(1, 10)}"
+          >
+            <div
+              class="relative mb-2 ml-8 mt-4 text-lg font-bold text-neutral-900 transition before:absolute before:left-[-16px] before:top-[5.5px] before:h-4 before:w-1 before:rounded-md before:bg-(--primary) dark:text-neutral-100"
+              th:text="#{widget.archives.title}"
+            >
+              Archives
+            </div>
+            <div class="overflow-hidden px-4">
+              <a
+                th:each="post : ${recentPosts.items}"
+                th:href="@{${post.status.permalink}}"
+                class="group block"
+              >
+                <div
+                  class="h-10 rounded-lg pl-2 transition-all group-hover:bg-(--btn-plain-bg-hover) group-hover:pl-3 group-active:bg-(--btn-plain-bg-active)"
+                >
+                  <div
+                    class="relative mr-2 flex h-full items-center justify-between"
+                  >
+                    <span
+                      class="overflow-hidden overflow-ellipsis whitespace-nowrap text-left text-sm text-neutral-700 transition group-hover:text-(--primary) dark:text-neutral-300 dark:group-hover:text-(--primary)"
+                      th:text="${post.spec.title}"
+                    >
+                      Post
+                    </span>
+                    <span
+                      class="ml-2 flex-shrink-0 text-xs text-neutral-400"
+                      th:text="${#dates.format(post.spec.publishTime, 'MM-dd')}"
+                    >
+                      01-01
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <a
+              th:href="@{/archives}"
+              class="mx-4 mt-1 block text-center text-sm font-bold text-(--primary) transition hover:underline"
+              th:text="#{widget.archives.viewAll}"
+            >
+              View All
+            </a>
+          </div>
+        </div>
         <div
           th:case="'html'"
           class="card-base onload-animation p-4"
