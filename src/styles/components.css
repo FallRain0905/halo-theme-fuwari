@@ -2,7 +2,7 @@
 
 @layer components {
   .card-base {
-    @apply overflow-hidden rounded-(--radius-large) bg-(--card-bg) transition;
+    @apply overflow-hidden rounded-(--radius-large) bg-(--card-bg) transition duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
 
   .expand-animation {

@@ -48,7 +48,7 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
     >
       <figure
         th:each="photo, photoStat : ${photos.items}"
-        class="group relative overflow-hidden rounded-2xl bg-(--btn-regular-bg)"
+        class="group relative overflow-hidden rounded-2xl bg-(--btn-regular-bg) transition duration-300 hover:-translate-y-1 hover:shadow-lg break-inside-avoid"
         th:style="|animation-delay: calc(var(--content-delay) + ${photoStat.index * 50}ms)|"
       >
         <img
