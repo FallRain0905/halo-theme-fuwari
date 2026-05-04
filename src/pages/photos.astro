@@ -59,24 +59,6 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
           loading="lazy"
           class="aspect-4/3 w-full cursor-zoom-in object-cover transition duration-300 group-hover:scale-105"
         />
-        <figcaption
-          th:if="${not #strings.isEmpty(photo.spec.displayName) or not #strings.isEmpty(photo.spec.description)}"
-          class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-4 pb-3 pt-10 text-white transition"
-        >
-          <div
-            class="font-bold"
-            th:if="${not #strings.isEmpty(photo.spec.displayName)}"
-            th:text="${photo.spec.displayName}"
-          >
-            Photo
-          </div>
-          <div
-            class="line-clamp-2 text-sm text-white/75"
-            th:if="${not #strings.isEmpty(photo.spec.description)}"
-            th:text="${photo.spec.description}"
-          >
-          </div>
-        </figcaption>
       </figure>
     </div>
 
