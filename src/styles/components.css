@@ -2,7 +2,25 @@
 
 @layer components {
   .card-base {
-    @apply overflow-hidden rounded-(--radius-large) bg-(--card-bg) transition duration-300 hover:-translate-y-1 hover:shadow-lg;
+    @apply overflow-hidden rounded-(--radius-large) bg-(--card-bg) transition;
+  }
+
+  .card-base:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark .card-base:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  .hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark .hover-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   }
 
   .expand-animation {
