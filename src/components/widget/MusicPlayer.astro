@@ -386,7 +386,10 @@ const layoutId = `${widgetId}-layout`;
     const parseLRC = (lrc) => {
       if (!lrc) return [];
       const result = [];
-      const timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
+      const timeReg = new RegExp(
+        "\\[" + "(\\d{2}):(\\d{2})\\.(\\d{2,3})\\]",
+        "g",
+      );
       lrc.split("\n").forEach((line) => {
         const matches = Array.from(line.matchAll(timeReg));
         if (matches.length === 0) return;

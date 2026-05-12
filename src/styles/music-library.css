@@ -1,0 +1,51 @@
+.music-library {
+  --music-cover-shadow: 0 24px 60px
+    color-mix(in oklch, var(--primary) 18%, transparent);
+}
+
+#main-grid.layout-wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+#main-grid.layout-wide main {
+  grid-column: 1 / -1;
+}
+
+.music-library .music-cover-wrap {
+  box-shadow: var(--music-cover-shadow);
+}
+
+.music-library .music-section-tabs {
+  scrollbar-width: none;
+}
+
+.music-library .music-section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.music-library .music-section-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  backdrop-filter: blur(12px);
+}
+
+.music-library .music-cover {
+  transform: scale(1.01);
+}
+
+.music-library .music-item[aria-current="true"] {
+  outline: 1px solid color-mix(in oklch, var(--primary) 40%, transparent);
+}
+
+.music-library .music-progress {
+  touch-action: none;
+}
+
+.music-library .music-lyrics {
+  scrollbar-width: thin;
+}
+
+.music-library .lyric-line {
+  color: inherit;
+}

@@ -1,0 +1,844 @@
+---
+import { Icon } from "astro-icon/components";
+
+const libraryId = `music-library-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<section
+  id={libraryId}
+  class="music-library card-base onload-animation mb-4 overflow-hidden"
+  data-songs-url="/themes/theme-fuwari/assets/music/library/songs.json"
+  data-default-cover=""
+  data-volume="0.75"
+>
+  <div class="border-b border-(--line-color) px-6 py-6 md:px-8">
+    <div
+      class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"
+    >
+      <div class="min-w-0">
+        <h1 class="music-page-title text-3xl font-bold text-90">
+          Music Library
+        </h1>
+        <p class="mt-2 text-sm text-50">
+          <span class="music-count">0 songs</span>
+          <span class="mx-2 text-30">/</span>
+          <span class="music-status" th:text="#{page.music.loading}">
+            Loading
+          </span>
+        </p>
+      </div>
+
+      <div class="flex w-full flex-col gap-3 xl:max-w-xl">
+        <label class="relative block">
+          <Icon
+            name="material-symbols:search-rounded"
+            class="pointer-events-none absolute left-3 top-1/2 text-xl text-30 -translate-y-1/2"
+            aria-hidden="true"
+          />
+          <input
+            class="music-search h-11 w-full rounded-lg border border-(--line-color) bg-(--card-bg) pl-10 pr-3 text-sm text-75 outline-none transition focus:border-(--primary)"
+            type="search"
+            autocomplete="off"
+            th:placeholder="#{page.music.searchPlaceholder}"
+            aria-label="Search music"
+          />
+        </label>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="relative block">
+            <select
+              class="music-artist-filter h-11 w-full appearance-none rounded-lg border border-(--line-color) bg-(--card-bg) px-3 pr-9 text-sm font-bold text-75 outline-none transition focus:border-(--primary)"
+              aria-label="Filter by artist"
+            >
+              <option value="" th:text="#{page.music.allArtists}">
+                All artists
+              </option>
+            </select>
+            <Icon
+              name="material-symbols:keyboard-arrow-down-rounded"
+              class="pointer-events-none absolute right-3 top-1/2 text-xl text-50 -translate-y-1/2"
+              aria-hidden="true"
+            />
+          </label>
+
+          <label class="relative block">
+            <select
+              class="music-album-filter h-11 w-full appearance-none rounded-lg border border-(--line-color) bg-(--card-bg) px-3 pr-9 text-sm font-bold text-75 outline-none transition focus:border-(--primary)"
+              aria-label="Filter by album"
+            >
+              <option value="" th:text="#{page.music.allAlbums}">
+                All albums
+              </option>
+            </select>
+            <Icon
+              name="material-symbols:keyboard-arrow-down-rounded"
+              class="pointer-events-none absolute right-3 top-1/2 text-xl text-50 -translate-y-1/2"
+              aria-hidden="true"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="music-section-tabs mt-5 flex gap-2 overflow-x-auto pb-1"
+      aria-label="Music sections"
+    >
+    </div>
+  </div>
+
+  <div
+    class="grid min-h-[34rem] grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)]"
+  >
+    <aside
+      class="music-now-playing border-b border-(--line-color) p-6 md:p-8 xl:border-b-0 xl:border-r"
+    >
+      <div class="mx-auto max-w-sm xl:max-w-none">
+        <div
+          class="music-cover-wrap relative aspect-square overflow-hidden rounded-xl bg-(--btn-regular-bg)"
+        >
+          <img
+            class="music-cover h-full w-full object-cover opacity-0 transition duration-300"
+            src=""
+            alt=""
+          />
+          <div
+            class="music-cover-fallback absolute inset-0 flex items-center justify-center text-(--primary)"
+          >
+            <Icon
+              name="material-symbols:music-note-rounded"
+              class="text-7xl opacity-40"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+
+        <div class="mt-5 min-w-0 text-center xl:text-left">
+          <h2 class="music-title truncate text-2xl font-bold text-90">
+            <span th:text="#{page.music.noPlaying}">No music playing</span>
+          </h2>
+          <p class="music-artist mt-1 truncate text-sm font-medium text-50"></p>
+          <p class="music-album mt-1 truncate text-xs text-30"></p>
+        </div>
+
+        <div class="mt-5">
+          <div
+            class="flex items-center justify-between font-mono text-xs text-50"
+          >
+            <span class="music-current-time">0:00</span>
+            <span class="music-total-time">0:00</span>
+          </div>
+          <div
+            class="music-progress mt-2 h-2 cursor-pointer rounded-full bg-(--btn-regular-bg)"
+            role="slider"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div
+              class="music-progress-bar h-full w-0 rounded-full bg-(--primary)"
+            >
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            class="music-mode btn-plain h-11 w-11 rounded-lg text-50"
+            th:aria-label="#{page.music.playMode}"
+            title="Play mode"
+          >
+            <span
+              class="music-mode-repeat icon-[material-symbols--repeat-rounded] text-2xl"
+              aria-hidden="true"></span>
+            <span
+              class="music-mode-one icon-[material-symbols--repeat-one-rounded] hidden text-2xl"
+              aria-hidden="true"></span>
+            <span
+              class="music-mode-random icon-[material-symbols--shuffle-rounded] hidden text-2xl"
+              aria-hidden="true"></span>
+          </button>
+
+          <button
+            type="button"
+            class="music-prev btn-plain h-11 w-11 rounded-lg text-75"
+            th:aria-label="#{widget.music.prev}"
+            title="Previous"
+          >
+            <span
+              class="icon-[material-symbols--skip-previous-rounded] text-3xl"
+              aria-hidden="true"></span>
+          </button>
+
+          <button
+            type="button"
+            class="music-play flex h-14 w-14 items-center justify-center rounded-full bg-(--primary) text-white transition active:scale-95 dark:text-black/70"
+            th:aria-label="#{widget.music.play}"
+            title="Play"
+          >
+            <span
+              class="music-play-icon icon-[material-symbols--play-arrow-rounded] ml-0.5 text-4xl"
+              aria-hidden="true"></span>
+            <span
+              class="music-pause-icon icon-[material-symbols--pause-rounded] hidden text-4xl"
+              aria-hidden="true"></span>
+          </button>
+
+          <button
+            type="button"
+            class="music-next btn-plain h-11 w-11 rounded-lg text-75"
+            th:aria-label="#{widget.music.next}"
+            title="Next"
+          >
+            <span
+              class="icon-[material-symbols--skip-next-rounded] text-3xl"
+              aria-hidden="true"></span>
+          </button>
+
+          <button
+            type="button"
+            class="music-random btn-plain h-11 w-11 rounded-lg text-50"
+            th:aria-label="#{page.music.random}"
+            title="Random"
+          >
+            <span
+              class="icon-[material-symbols--shuffle-rounded] text-2xl"
+              aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <label class="mt-5 flex items-center gap-3 text-xs font-bold text-50">
+          <Icon
+            name="material-symbols:volume-up-rounded"
+            class="text-xl"
+            aria-hidden="true"
+          />
+          <input
+            class="music-volume w-full accent-(--primary)"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value="0.75"
+            th:aria-label="#{widget.music.volume}"
+          />
+        </label>
+
+        <div
+          class="music-lyrics mt-5 hidden max-h-36 overflow-y-auto rounded-lg border border-(--line-color) bg-(--btn-regular-bg) p-4 text-center text-sm leading-7 text-50"
+        >
+        </div>
+      </div>
+    </aside>
+
+    <div class="min-w-0 p-4 md:p-6">
+      <div
+        class="music-empty hidden rounded-xl border border-dashed border-(--line-color) px-6 py-16 text-center text-50"
+        th:text="#{page.music.empty}"
+      >
+        No songs
+      </div>
+      <div class="music-list flex flex-col gap-2" role="listbox"></div>
+    </div>
+  </div>
+
+  <template class="music-item-template">
+    <button
+      type="button"
+      class="music-item group grid w-full grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active) sm:grid-cols-[3.25rem_minmax(0,1fr)_minmax(8rem,0.35fr)_auto]"
+      role="option"
+    >
+      <span
+        class="relative h-13 w-13 overflow-hidden rounded-lg bg-(--btn-regular-bg)"
+      >
+        <img
+          class="item-cover h-full w-full object-cover opacity-0 transition"
+          src=""
+          alt=""
+          loading="lazy"
+        />
+        <span
+          class="item-fallback absolute inset-0 flex items-center justify-center text-(--primary)"
+        >
+          <Icon
+            name="material-symbols:music-note-rounded"
+            class="text-2xl opacity-50"
+          />
+        </span>
+      </span>
+      <span class="min-w-0">
+        <span
+          class="item-title block truncate text-base font-bold text-75 group-hover:text-(--primary)"
+        ></span>
+        <span class="item-artist block truncate text-xs text-50"></span>
+      </span>
+      <span class="item-album hidden truncate text-sm text-50 sm:block"></span>
+      <span class="item-duration font-mono text-xs text-30">--:--</span>
+    </button>
+  </template>
+</section>
+
+<script define:vars={{ libraryId }} is:inline>
+  (() => {
+    const root = document.getElementById(libraryId);
+    if (!root || root.dataset.bound === "true") return;
+    root.dataset.bound = "true";
+
+    const resources = window.i18nResources || {};
+    const t = (key, fallback) => {
+      const value = resources[key];
+      return value && !value.includes("#{") ? value : fallback;
+    };
+
+    const ui = {
+      search: root.querySelector(".music-search"),
+      sectionTabs: root.querySelector(".music-section-tabs"),
+      artistFilter: root.querySelector(".music-artist-filter"),
+      albumFilter: root.querySelector(".music-album-filter"),
+      count: root.querySelector(".music-count"),
+      status: root.querySelector(".music-status"),
+      list: root.querySelector(".music-list"),
+      empty: root.querySelector(".music-empty"),
+      template: root.querySelector(".music-item-template"),
+      cover: root.querySelector(".music-cover"),
+      coverFallback: root.querySelector(".music-cover-fallback"),
+      title: root.querySelector(".music-title"),
+      artist: root.querySelector(".music-artist"),
+      album: root.querySelector(".music-album"),
+      currentTime: root.querySelector(".music-current-time"),
+      totalTime: root.querySelector(".music-total-time"),
+      progress: root.querySelector(".music-progress"),
+      progressBar: root.querySelector(".music-progress-bar"),
+      play: root.querySelector(".music-play"),
+      playIcon: root.querySelector(".music-play-icon"),
+      pauseIcon: root.querySelector(".music-pause-icon"),
+      prev: root.querySelector(".music-prev"),
+      next: root.querySelector(".music-next"),
+      random: root.querySelector(".music-random"),
+      mode: root.querySelector(".music-mode"),
+      modeRepeat: root.querySelector(".music-mode-repeat"),
+      modeOne: root.querySelector(".music-mode-one"),
+      modeRandom: root.querySelector(".music-mode-random"),
+      volume: root.querySelector(".music-volume"),
+      lyrics: root.querySelector(".music-lyrics"),
+    };
+
+    const i18n = {
+      title: t("page.music.title", "Music Library"),
+      loading: t("page.music.loading", "Loading music"),
+      loadFailed: t("page.music.loadFailed", "Failed to load music"),
+      empty: t("page.music.empty", "No songs"),
+      songs: t("page.music.songs", "songs"),
+      noPlaying: t("page.music.noPlaying", "No music playing"),
+      unknownArtist: t("page.music.unknownArtist", "Unknown artist"),
+      unknownAlbum: t("page.music.unknownAlbum", "Unknown album"),
+      uncategorized: t("page.music.uncategorized", "Uncategorized"),
+      play: t("widget.music.play", "Play"),
+      pause: t("widget.music.pause", "Pause"),
+    };
+
+    const parseThemeConfig = () => {
+      const el = document.getElementById("theme-config");
+      if (!el?.textContent) return {};
+      try {
+        return JSON.parse(el.textContent) || {};
+      } catch {
+        return {};
+      }
+    };
+
+    const themeConfig = parseThemeConfig();
+    const libraryConfig = themeConfig.music_library || {};
+    const cfg = {
+      pageTitle: libraryConfig.page_title || i18n.title,
+      songsUrl:
+        libraryConfig.songs_json ||
+        root.dataset.songsUrl ||
+        "/themes/theme-fuwari/assets/music/library/songs.json",
+      defaultCover:
+        libraryConfig.default_cover || root.dataset.defaultCover || "",
+      volume: Number.parseFloat(
+        libraryConfig.volume ?? root.dataset.volume ?? "0.75",
+      ),
+    };
+
+    root.dataset.songsUrl = cfg.songsUrl;
+    root.dataset.defaultCover = cfg.defaultCover;
+    root.dataset.volume = String(
+      Number.isFinite(cfg.volume) ? cfg.volume : 0.75,
+    );
+    root.querySelector(".music-page-title").textContent = cfg.pageTitle;
+
+    const state = {
+      songs: [],
+      filtered: [],
+      currentIndex: -1,
+      section: "",
+      playMode: 0,
+      lyrics: [],
+      currentLyricIndex: -1,
+    };
+
+    const audio = document.createElement("audio");
+    audio.preload = "metadata";
+    audio.volume = Number.parseFloat(root.dataset.volume || "0.75");
+    ui.volume.value = String(audio.volume);
+    root.appendChild(audio);
+
+    const normalize = (value) => String(value || "").trim();
+    const lower = (value) => normalize(value).toLowerCase();
+    const formatTime = (seconds) => {
+      if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? "0" : ""}${sec}`;
+    };
+
+    const parseLyrics = (lrc) => {
+      if (!lrc) return [];
+      const lines = [];
+      const timeReg = new RegExp(
+        "\\[" + "(\\d{2}):(\\d{2})\\.(\\d{2,3})\\]",
+        "g",
+      );
+      String(lrc)
+        .split("\n")
+        .forEach((line) => {
+          const matches = Array.from(line.matchAll(timeReg));
+          if (!matches.length) return;
+          const text = line.replace(timeReg, "").trim();
+          if (!text) return;
+          matches.forEach((match) => {
+            const min = Number.parseInt(match[1], 10);
+            const sec = Number.parseInt(match[2], 10);
+            const ms = Number.parseInt(match[3], 10);
+            const time =
+              min * 60 + sec + ms / (match[3].length === 3 ? 1000 : 100);
+            lines.push({ time, text });
+          });
+        });
+      if (lines.length) return lines.sort((a, b) => a.time - b.time);
+      return String(lrc)
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((text) => ({ time: null, text }));
+    };
+
+    const normalizeSongs = (data) => {
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.songs)
+          ? data.songs
+          : [];
+      return list
+        .map((song, index) => ({
+          id: normalize(song.id) || `song-${index}`,
+          title: normalize(song.title || song.name) || `Track ${index + 1}`,
+          artist: normalize(song.artist || song.author) || i18n.unknownArtist,
+          album: normalize(song.album) || i18n.unknownAlbum,
+          category: normalize(song.category || song.section || song.genre),
+          cover: normalize(song.cover || song.pic || root.dataset.defaultCover),
+          url: normalize(song.url || song.src),
+          lrc: song.lrc || song.lyric || "",
+          duration: normalize(song.duration),
+        }))
+        .filter((song) => song.url);
+    };
+
+    const uniqueValues = (key) =>
+      [...new Set(state.songs.map((song) => song[key]).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b, "zh-Hans-CN"),
+      );
+
+    const fillSelect = (select, values, firstLabel) => {
+      const current = select.value;
+      select.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = "";
+      all.textContent = firstLabel;
+      select.appendChild(all);
+      values.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      if (values.includes(current)) select.value = current;
+    };
+
+    const updateFilters = () => {
+      fillSelect(
+        ui.artistFilter,
+        uniqueValues("artist"),
+        t("page.music.allArtists", "All artists"),
+      );
+      fillSelect(
+        ui.albumFilter,
+        uniqueValues("album"),
+        t("page.music.allAlbums", "All albums"),
+      );
+    };
+
+    const sectionName = (song) =>
+      song.category || song.album || i18n.uncategorized;
+
+    const updateSections = () => {
+      const sections = uniqueValues("category");
+      ui.sectionTabs.innerHTML = "";
+      ui.sectionTabs.classList.toggle("hidden", sections.length === 0);
+      if (!sections.length) return;
+
+      const makeButton = (value, label, count) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className =
+          "music-section-tab btn-card h-10 shrink-0 rounded-lg px-4 text-sm font-bold text-75 transition";
+        button.dataset.section = value;
+        button.textContent = count == null ? label : `${label} ${count}`;
+        button.addEventListener("click", () => {
+          state.section = value;
+          updateSectionActiveUI();
+          applyFilter();
+        });
+        ui.sectionTabs.appendChild(button);
+      };
+
+      makeButton("", t("common.all", "All"), state.songs.length);
+      sections.forEach((section) => {
+        const count = state.songs.filter(
+          (song) => song.category === section,
+        ).length;
+        makeButton(section, section, count);
+      });
+      updateSectionActiveUI();
+    };
+
+    const updateSectionActiveUI = () => {
+      ui.sectionTabs
+        .querySelectorAll(".music-section-tab")
+        .forEach((button) => {
+          const active = button.dataset.section === state.section;
+          button.classList.toggle("bg-(--primary)", active);
+          button.classList.toggle("text-white", active);
+          button.classList.toggle("dark:text-black/70", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+    };
+
+    const setCover = (img, fallback, src) => {
+      img.classList.add("opacity-0");
+      fallback.classList.remove("hidden");
+      img.src = src || "";
+      if (!src) return;
+      img.onload = () => {
+        img.classList.remove("opacity-0");
+        fallback.classList.add("hidden");
+      };
+      img.onerror = () => {
+        img.classList.add("opacity-0");
+        fallback.classList.remove("hidden");
+      };
+    };
+
+    const updateNowPlaying = (song) => {
+      if (!song) {
+        ui.title.textContent = i18n.noPlaying;
+        ui.artist.textContent = "";
+        ui.album.textContent = "";
+        setCover(ui.cover, ui.coverFallback, "");
+        return;
+      }
+      ui.title.textContent = song.title;
+      ui.title.title = song.title;
+      ui.artist.textContent = song.artist;
+      ui.artist.title = song.artist;
+      ui.album.textContent = song.album;
+      ui.album.title = song.album;
+      setCover(ui.cover, ui.coverFallback, song.cover);
+    };
+
+    const updatePlayButton = () => {
+      const playing = !audio.paused;
+      ui.playIcon.classList.toggle("hidden", playing);
+      ui.pauseIcon.classList.toggle("hidden", !playing);
+      ui.play.title = playing ? i18n.pause : i18n.play;
+      ui.play.setAttribute("aria-label", ui.play.title);
+    };
+
+    const updateMode = () => {
+      ui.modeRepeat.classList.toggle("hidden", state.playMode !== 0);
+      ui.modeOne.classList.toggle("hidden", state.playMode !== 1);
+      ui.modeRandom.classList.toggle("hidden", state.playMode !== 2);
+      ui.mode.classList.toggle("text-(--primary)", state.playMode !== 0);
+    };
+
+    const renderLyrics = (song) => {
+      state.lyrics = [];
+      state.currentLyricIndex = -1;
+      ui.lyrics.innerHTML = "";
+      ui.lyrics.classList.add("hidden");
+      if (!song?.lrc) return;
+
+      const applyLyrics = (text) => {
+        state.lyrics = parseLyrics(text);
+        if (!state.lyrics.length) return;
+        ui.lyrics.classList.remove("hidden");
+        state.lyrics.forEach((line, index) => {
+          const el = document.createElement("button");
+          el.type = "button";
+          el.className =
+            "lyric-line block w-full rounded-md px-2 py-0.5 text-center transition hover:text-(--primary)";
+          el.textContent = line.text;
+          el.dataset.index = String(index);
+          el.addEventListener("click", () => {
+            if (Number.isFinite(line.time)) audio.currentTime = line.time;
+          });
+          ui.lyrics.appendChild(el);
+        });
+      };
+
+      const lrc = String(song.lrc);
+      if (
+        /^(https?:)?\/\//.test(lrc) ||
+        lrc.startsWith("/") ||
+        /\.(lrc|txt)(\?|#|$)/i.test(lrc)
+      ) {
+        fetch(lrc)
+          .then((res) => (res.ok ? res.text() : ""))
+          .then(applyLyrics)
+          .catch(() => {});
+      } else {
+        applyLyrics(lrc);
+      }
+    };
+
+    const highlightLyrics = () => {
+      if (!state.lyrics.length) return;
+      let activeIndex = -1;
+      for (let i = 0; i < state.lyrics.length; i += 1) {
+        if (!Number.isFinite(state.lyrics[i].time)) return;
+        if (audio.currentTime >= state.lyrics[i].time) activeIndex = i;
+        else break;
+      }
+      if (activeIndex === state.currentLyricIndex) return;
+      state.currentLyricIndex = activeIndex;
+      ui.lyrics.querySelectorAll(".lyric-line").forEach((line, index) => {
+        const active = index === activeIndex;
+        line.classList.toggle("text-(--primary)", active);
+        line.classList.toggle("font-bold", active);
+      });
+      const activeLine = ui.lyrics.querySelector(
+        `.lyric-line[data-index="${activeIndex}"]`,
+      );
+      if (activeLine) {
+        ui.lyrics.scrollTo({
+          top:
+            activeLine.offsetTop -
+            ui.lyrics.clientHeight / 2 +
+            activeLine.clientHeight / 2,
+          behavior: "smooth",
+        });
+      }
+    };
+
+    const renderList = () => {
+      ui.list.innerHTML = "";
+      ui.empty.classList.toggle("hidden", state.filtered.length > 0);
+      let lastSection = "";
+      const hasSections = uniqueValues("category").length > 0;
+      state.filtered.forEach((song, index) => {
+        const currentSection = sectionName(song);
+        if (currentSection !== lastSection && (state.section || hasSections)) {
+          const heading = document.createElement("div");
+          heading.className =
+            "music-section-heading -mx-1 mb-1 mt-4 flex items-center justify-between rounded-lg bg-(--card-bg)/85 px-3 py-2 text-sm font-bold text-50 first:mt-0";
+          const label = document.createElement("span");
+          const count = document.createElement("span");
+          label.textContent = currentSection;
+          count.textContent = String(
+            state.filtered.filter(
+              (item) => sectionName(item) === currentSection,
+            ).length,
+          );
+          heading.append(label, count);
+          ui.list.appendChild(heading);
+          lastSection = currentSection;
+        }
+        const clone = ui.template.content.cloneNode(true);
+        const item = clone.querySelector(".music-item");
+        const img = clone.querySelector(".item-cover");
+        const fallback = clone.querySelector(".item-fallback");
+        clone.querySelector(".item-title").textContent = song.title;
+        clone.querySelector(".item-artist").textContent = song.artist;
+        clone.querySelector(".item-album").textContent = song.album;
+        clone.querySelector(".item-duration").textContent =
+          song.duration || "--:--";
+        item.dataset.id = song.id;
+        item.setAttribute("aria-label", `${song.title} - ${song.artist}`);
+        item.addEventListener("click", () => playFilteredIndex(index, true));
+        setCover(img, fallback, song.cover);
+        ui.list.appendChild(clone);
+      });
+      updateActiveItem();
+    };
+
+    const updateActiveItem = () => {
+      const current = state.songs[state.currentIndex];
+      ui.list.querySelectorAll(".music-item").forEach((item) => {
+        const active = current && item.dataset.id === current.id;
+        item.classList.toggle("bg-(--btn-plain-bg-hover)", active);
+        item.classList.toggle("text-(--primary)", active);
+        item.toggleAttribute("aria-current", Boolean(active));
+      });
+    };
+
+    const applyFilter = () => {
+      const q = lower(ui.search.value);
+      const artist = ui.artistFilter.value;
+      const album = ui.albumFilter.value;
+      const section = state.section;
+      state.filtered = state.songs.filter((song) => {
+        const matchesQuery =
+          !q ||
+          lower(song.title).includes(q) ||
+          lower(song.artist).includes(q) ||
+          lower(song.album).includes(q);
+        return (
+          matchesQuery &&
+          (!section || song.category === section) &&
+          (!artist || song.artist === artist) &&
+          (!album || song.album === album)
+        );
+      });
+      ui.count.textContent = `${state.filtered.length} / ${state.songs.length} ${i18n.songs}`;
+      renderList();
+    };
+
+    const playSong = (song, autoPlay) => {
+      const realIndex = state.songs.findIndex((item) => item.id === song.id);
+      if (realIndex === -1) return;
+      state.currentIndex = realIndex;
+      audio.src = song.url;
+      updateNowPlaying(song);
+      renderLyrics(song);
+      updateActiveItem();
+      if (autoPlay) {
+        audio.play().catch(() => {});
+      }
+    };
+
+    const playFilteredIndex = (index, autoPlay) => {
+      const song = state.filtered[index];
+      if (song) playSong(song, autoPlay);
+    };
+
+    const getNextSong = (step = 1) => {
+      if (!state.songs.length) return null;
+      if (state.playMode === 2) {
+        return state.songs[Math.floor(Math.random() * state.songs.length)];
+      }
+      const next =
+        (state.currentIndex + step + state.songs.length) % state.songs.length;
+      return state.songs[next];
+    };
+
+    ui.search.addEventListener("input", applyFilter);
+    ui.artistFilter.addEventListener("change", applyFilter);
+    ui.albumFilter.addEventListener("change", applyFilter);
+    ui.play.addEventListener("click", () => {
+      if (state.currentIndex === -1 && state.filtered.length) {
+        playFilteredIndex(0, true);
+        return;
+      }
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    });
+    ui.prev.addEventListener("click", () => {
+      const song = getNextSong(-1);
+      if (song) playSong(song, true);
+    });
+    ui.next.addEventListener("click", () => {
+      const song = getNextSong(1);
+      if (song) playSong(song, true);
+    });
+    ui.random.addEventListener("click", () => {
+      if (!state.songs.length) return;
+      playSong(
+        state.songs[Math.floor(Math.random() * state.songs.length)],
+        true,
+      );
+    });
+    ui.mode.addEventListener("click", () => {
+      state.playMode = (state.playMode + 1) % 3;
+      updateMode();
+    });
+    ui.volume.addEventListener("input", () => {
+      audio.volume = Number.parseFloat(ui.volume.value);
+    });
+    ui.progress.addEventListener("click", (event) => {
+      if (!audio.duration) return;
+      const rect = ui.progress.getBoundingClientRect();
+      const percent = Math.max(
+        0,
+        Math.min(1, (event.clientX - rect.left) / rect.width),
+      );
+      audio.currentTime = percent * audio.duration;
+    });
+
+    audio.addEventListener("play", updatePlayButton);
+    audio.addEventListener("pause", updatePlayButton);
+    audio.addEventListener("loadedmetadata", () => {
+      ui.totalTime.textContent = formatTime(audio.duration);
+    });
+    audio.addEventListener("timeupdate", () => {
+      ui.currentTime.textContent = formatTime(audio.currentTime);
+      if (audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        ui.progressBar.style.width = `${progress}%`;
+        ui.progress.setAttribute("aria-valuenow", String(Math.round(progress)));
+      }
+      highlightLyrics();
+    });
+    audio.addEventListener("ended", () => {
+      if (state.playMode === 1) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+        return;
+      }
+      const song = getNextSong(1);
+      if (song) playSong(song, true);
+    });
+
+    const loadSongs = async () => {
+      ui.status.textContent = i18n.loading;
+      try {
+        const response = await fetch(root.dataset.songsUrl, {
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        state.songs = normalizeSongs(data);
+        state.filtered = [...state.songs];
+        updateFilters();
+        updateSections();
+        applyFilter();
+        if (state.songs[0]) {
+          playSong(state.songs[0], false);
+        }
+        ui.status.textContent = state.songs.length
+          ? `${state.songs.length} ${i18n.songs}`
+          : i18n.empty;
+      } catch (error) {
+        ui.status.textContent = i18n.loadFailed;
+        ui.empty.classList.remove("hidden");
+        ui.empty.textContent = i18n.loadFailed;
+      }
+    };
+
+    updateMode();
+    updatePlayButton();
+    updateNowPlaying(null);
+    loadSongs();
+  })();
+</script>

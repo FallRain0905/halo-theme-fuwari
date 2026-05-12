@@ -1,0 +1,10 @@
+[
+  {
+    "title": "Example Track",
+    "artist": "Example Artist",
+    "album": "Example Album",
+    "cover": "/themes/theme-fuwari/assets/images/demo-banner.png",
+    "url": "/music/example-track.mp3",
+    "lrc": "[00:00.00]Example lyric line"
+  }
+]

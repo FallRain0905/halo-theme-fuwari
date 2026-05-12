@@ -10,6 +10,7 @@ import "../styles/base.css";
 import "../styles/components.css";
 import "../styles/markdown.css";
 import "../styles/music-player.css";
+import "../styles/music-library.css";
 import "../styles/transition.css";
 import "../styles/scrollbar.css";
 import "../styles/photoswipe.css";
@@ -40,6 +41,7 @@ const {
 
 const i18nInlineScript = `<script th:inline="javascript">
   window.i18nResources = {
+    "common.all": \`[(#{common.all})]\`,
     "search.loading": \`[(#{search.loading})]\`,
     "search.noResults": \`[(#{search.noResults})]\`,
     "search.panel": \`[(#{search.panel})]\`,
@@ -67,6 +69,19 @@ const i18nInlineScript = `<script th:inline="javascript">
     "widget.music.progress": \`[(#{widget.music.progress})]\`,
     "widget.music.noCover": \`[(#{widget.music.noCover})]\`,
     "widget.music.cover": \`[(#{widget.music.cover})]\`,
+    "page.music.loading": \`[(#{page.music.loading})]\`,
+    "page.music.loadFailed": \`[(#{page.music.loadFailed})]\`,
+    "page.music.empty": \`[(#{page.music.empty})]\`,
+    "page.music.songs": \`[(#{page.music.songs})]\`,
+    "page.music.searchPlaceholder": \`[(#{page.music.searchPlaceholder})]\`,
+    "page.music.allArtists": \`[(#{page.music.allArtists})]\`,
+    "page.music.allAlbums": \`[(#{page.music.allAlbums})]\`,
+    "page.music.noPlaying": \`[(#{page.music.noPlaying})]\`,
+    "page.music.unknownArtist": \`[(#{page.music.unknownArtist})]\`,
+    "page.music.unknownAlbum": \`[(#{page.music.unknownAlbum})]\`,
+    "page.music.uncategorized": \`[(#{page.music.uncategorized})]\`,
+    "page.music.playMode": \`[(#{page.music.playMode})]\`,
+    "page.music.random": \`[(#{page.music.random})]\`,
     "page.video.count": \`[(#{page.video.count})]\`,
     "page.video.empty": \`[(#{page.video.empty})]\`,
   };

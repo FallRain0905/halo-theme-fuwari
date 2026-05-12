@@ -313,6 +313,31 @@ spec:
           label: 目录最大深度
           value: 2
           help: "目录的最大深度"
+    - group: music_library
+      label: 音乐馆
+      formSchema:
+        - $formkit: text
+          name: page_title
+          label: 页面标题
+          value: 音乐馆
+          help: "音乐页面顶部显示的标题"
+        - $formkit: url
+          name: songs_json
+          label: 歌曲 JSON 地址
+          value: "/themes/theme-fuwari/assets/music/library/songs.json"
+          validation: required
+          help: "推荐上传到 Halo 附件、对象存储或同域静态目录。JSON 可为数组，也可为 { songs: [] }。"
+        - $formkit: attachment
+          name: default_cover
+          label: 默认封面
+          help: "歌曲未配置封面时使用"
+        - $formkit: number
+          name: volume
+          label: 默认音量
+          min: 0
+          max: 1
+          step: 0.05
+          value: 0.75
     - group: beian
       label: 备案设置
       formSchema:

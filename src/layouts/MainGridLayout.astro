@@ -18,6 +18,7 @@ interface Props {
   setOGTypeArticle?: boolean;
   isHomePage?: boolean;
   showToc?: boolean;
+  wideExpression?: string;
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   setOGTypeArticle = false,
   isHomePage = false,
   showToc = false,
+  wideExpression = "false",
 } = Astro.props;
 const mainPanelTop = `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`;
 ---
@@ -75,6 +77,8 @@ const mainPanelTop = `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEI
       <div
         id="main-grid"
         class="left-0 right-0 mx-auto grid w-full grid-cols-[17.5rem_auto] grid-rows-[auto_1fr_auto] gap-4 px-0 transition duration-700 md:px-4 lg:grid-rows-[auto]"
+        th:with={`layoutWide=${wideExpression}`}
+        th:classappend="${layoutWide ? ' layout-wide' : ''}"
       >
         <a
           id="banner-credit"
@@ -96,9 +100,11 @@ const mainPanelTop = `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEI
           ></span>
         </a>
 
-        <SideBar
-          class="onload-animation col-span-2 row-start-2 row-end-3 mb-4 lg:col-span-1 lg:row-start-1 lg:row-end-2 lg:max-w-70"
-        />
+        <div class="contents" th:if="${not layoutWide}">
+          <SideBar
+            class="onload-animation col-span-2 row-start-2 row-end-3 mb-4 lg:col-span-1 lg:row-start-1 lg:row-end-2 lg:max-w-70"
+          />
+        </div>
 
         <main
           id="swup-container"
