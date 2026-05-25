@@ -9,6 +9,8 @@
     "build:pkg": "pnpm build",
     "build:only": "astro build",
     "music:generate": "node scripts/generate-music-library.mjs",
+    "music:audit": "node scripts/audit-music-streaming.mjs",
+    "music:hls": "node scripts/generate-hls-library.mjs",
     "ncm:convert": "node scripts/convert-ncm-library.mjs",
     "bili:audio": "node scripts/download-bili-audio.mjs",
     "bili:gui": "node scripts/bili-audio-gui.mjs",
