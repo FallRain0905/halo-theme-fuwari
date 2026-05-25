@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101014" />
+    <title>FallRain Music</title>
+  </head>
+  <body>
+    <div id="app">
+      <main class="app-shell">
+        <header class="app-header">
+          <button
+            class="round-button"
+            id="menuButton"
+            type="button"
+            aria-label="Open library menu"
+          >
+            <span aria-hidden="true">&#9776;</span>
+          </button>
+          <nav class="home-tabs" aria-label="Home sections">
+            <button type="button">心动</button>
+            <button class="active" type="button">推荐</button>
+          </nav>
+          <button
+            class="round-button"
+            id="refreshButton"
+            type="button"
+            aria-label="Refresh library"
+          >
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M20 6v5h-5" />
+              <path d="M4 18v-5h5" />
+              <path d="M18.5 9A7 7 0 0 0 6.7 5.9L4 8.5" />
+              <path d="M5.5 15A7 7 0 0 0 17.3 18.1L20 15.5" />
+            </svg>
+          </button>
+        </header>
+
+        <section class="library-tools">
+          <div class="search-wrap">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input
+              id="search"
+              type="search"
+              placeholder="搜索歌曲、歌手或专辑"
+              readonly
+            />
+          </div>
+        </section>
+
+        <section class="featured-panel">
+          <div class="featured-rail" id="featuredRail"></div>
+        </section>
+
+        <section class="player-card">
+          <img class="cover-backdrop" id="coverBackdrop" alt="" />
+          <div class="player-content">
+            <div class="cover-wrap">
+              <img id="cover" alt="" />
+              <div class="cover-empty" id="coverEmpty"></div>
+            </div>
+
+            <div class="track-info">
+              <p class="player-label">Now Playing</p>
+              <h2 id="title">Nothing playing</h2>
+              <p id="artist"></p>
+              <p id="album"></p>
+            </div>
+
+            <div class="time-row">
+              <span id="currentTime">0:00</span>
+              <span id="duration">0:00</span>
+            </div>
+            <input
+              id="seek"
+              type="range"
+              min="0"
+              max="1000"
+              value="0"
+              aria-label="Playback progress"
+            />
+
+            <div class="controls">
+              <button
+                class="round-button"
+                id="modeButton"
+                type="button"
+                aria-label="Play mode"
+              >
+                <span class="icon-slot" id="modeIcon" aria-hidden="true"></span>
+              </button>
+              <button
+                class="round-button"
+                id="prevButton"
+                type="button"
+                aria-label="Previous track"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M6 5v14" />
+                  <path d="m19 6-10 6 10 6V6Z" />
+                </svg>
+              </button>
+              <button
+                class="play-button"
+                id="playButton"
+                type="button"
+                aria-label="Play"
+              >
+                <span class="icon-slot" id="playIcon" aria-hidden="true"></span>
+              </button>
+              <button
+                class="round-button"
+                id="nextButton"
+                type="button"
+                aria-label="Next track"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M18 5v14" />
+                  <path d="m5 6 10 6-10 6V6Z" />
+                </svg>
+              </button>
+              <button
+                class="round-button"
+                id="lyricsButton"
+                type="button"
+                aria-label="Lyrics"
+              >
+                <span aria-hidden="true">LRC</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="recent-panel">
+          <div class="section-head">
+            <strong>根据你喜爱的歌曲推荐</strong>
+            <span id="recentCount">0 tracks</span>
+          </div>
+          <div class="recent-list" id="recentList"></div>
+        </section>
+
+        <section class="treasure-panel">
+          <div class="section-head">
+            <strong>循环不止的「宝藏佳作」</strong>
+            <span id="loopCount">0 tracks</span>
+          </div>
+          <div class="song-stack" id="loopList"></div>
+        </section>
+
+        <section class="album-panel" hidden>
+          <div class="section-head">
+            <strong>Albums</strong>
+            <span id="albumCount">0 albums</span>
+          </div>
+          <div class="album-grid" id="albumGrid"></div>
+          <p class="empty" id="empty" hidden>No matching albums</p>
+        </section>
+
+        <aside class="mini-player" id="miniPlayer" aria-label="Mini player">
+          <div class="mini-progress" aria-hidden="true">
+            <div id="miniProgressBar"></div>
+          </div>
+          <div class="mini-cover-wrap">
+            <img id="miniCover" alt="" />
+            <span id="miniCoverEmpty"></span>
+          </div>
+          <div class="mini-copy">
+            <strong id="miniTitle">Nothing playing</strong>
+            <span id="miniArtist"></span>
+          </div>
+          <button
+            class="mini-play"
+            id="miniPlayButton"
+            type="button"
+            aria-label="Play"
+          >
+            <span class="icon-slot" id="miniPlayIcon" aria-hidden="true"></span>
+          </button>
+        </aside>
+
+        <div class="drawer-scrim" id="drawerScrim" hidden></div>
+        <aside class="library-drawer" id="libraryDrawer" aria-label="Library menu">
+          <div class="drawer-head">
+            <div>
+              <p>FallRain Music</p>
+              <strong>My Library</strong>
+            </div>
+            <button
+              class="round-button"
+              id="closeDrawerButton"
+              type="button"
+              aria-label="Close library menu"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <nav class="drawer-nav">
+            <button type="button" id="drawerAllButton">All Music <span id="drawerAllCount">0</span></button>
+            <button type="button" id="drawerFavoriteButton">Favorite Songs <span id="drawerFavoriteCount">0</span></button>
+            <button type="button" id="drawerPlaylistButton">Default Playlist <span id="drawerPlaylistCount">0</span></button>
+            <button type="button" id="drawerRecentButton">Recently Played <span id="drawerRecentCount">0</span></button>
+            <button type="button" id="drawerBiliImportButton">Bilibili Import <span>Beta</span></button>
+          </nav>
+          <div class="drawer-section">
+            <div class="drawer-section-head">
+              <span>Playlists</span>
+              <button type="button" id="drawerCreatePlaylistButton" aria-label="Create playlist">+</button>
+            </div>
+            <div class="drawer-playlist-list" id="drawerPlaylistList"></div>
+          </div>
+        </aside>
+
+        <div class="collection-scrim" id="collectionScrim" hidden></div>
+        <aside class="collection-drawer" id="collectionDrawer" aria-label="Song collection">
+          <div class="queue-handle" aria-hidden="true"></div>
+          <header class="collection-head">
+            <div>
+              <strong id="collectionTitle">Songs</strong>
+              <span id="collectionSubtitle">0 tracks</span>
+            </div>
+            <button
+              class="round-button"
+              id="closeCollectionButton"
+              type="button"
+              aria-label="Close song list"
+            >
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
+          <div class="collection-toolbar">
+            <button type="button" id="collectionPlayAllButton">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7-11-7Z" />
+              </svg>
+              <span>Play All</span>
+            </button>
+          </div>
+          <div class="collection-list" id="collectionList"></div>
+        </aside>
+
+        <div class="import-scrim" id="importScrim" hidden></div>
+        <aside class="import-drawer" id="importDrawer" aria-label="Bilibili import">
+          <div class="queue-handle" aria-hidden="true"></div>
+          <header class="collection-head">
+            <div>
+              <strong>Bilibili Import</strong>
+              <span>Server-side audio import</span>
+              <small class="build-stamp">zip-download-v2</small>
+            </div>
+            <button
+              class="round-button"
+              id="closeImportButton"
+              type="button"
+              aria-label="Close Bilibili import"
+            >
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
+          <form class="import-form" id="biliImportForm">
+            <div class="import-mode" role="radiogroup" aria-label="Bilibili import mode">
+              <label>
+                <input type="radio" name="biliImportMode" value="download" checked />
+                <span>Download ZIP</span>
+              </label>
+              <label>
+                <input type="radio" name="biliImportMode" value="library" />
+                <span>Add to library</span>
+              </label>
+            </div>
+            <label>
+              <span>BV ids or URLs</span>
+              <textarea
+                id="biliImportItems"
+                rows="5"
+                placeholder="BV1...\nhttps://www.bilibili.com/video/BV..."
+              ></textarea>
+            </label>
+            <label>
+              <span>Category</span>
+              <input id="biliImportCategory" type="text" value="Bilibili" />
+            </label>
+            <label class="library-token-field" id="biliImportTokenField" hidden>
+              <span>Library token</span>
+              <input
+                id="biliImportToken"
+                type="password"
+                autocomplete="off"
+                placeholder="Required for Add to library"
+              />
+            </label>
+            <div class="import-options">
+              <label>
+                <input id="biliImportPlaylist" type="checkbox" />
+                <span>Allow playlist</span>
+              </label>
+              <label>
+                <input id="biliImportFlat" type="checkbox" />
+                <span>Flat category</span>
+              </label>
+            </div>
+            <button class="import-submit" type="submit">Start Import</button>
+          </form>
+          <div class="import-status">
+            <div>
+              <strong id="biliImportStatus">Idle</strong>
+              <span id="biliImportMeta">Paste links and start a job.</span>
+            </div>
+            <button type="button" id="biliImportDownloadButton" hidden>Download ZIP</button>
+            <button type="button" id="biliImportRefreshButton">Refresh Library</button>
+          </div>
+          <div class="download-manager" id="biliDownloadManager" hidden>
+            <div>
+              <strong id="biliDownloadStatus">No download task</strong>
+              <span id="biliDownloadMeta">Downloads will appear here.</span>
+            </div>
+            <div class="download-progress" aria-hidden="true">
+              <span id="biliDownloadProgress"></span>
+            </div>
+          </div>
+          <pre class="import-log" id="biliImportLog"></pre>
+        </aside>
+
+        <div class="search-scrim" id="searchScrim" hidden></div>
+        <aside class="search-panel" id="searchPanel" aria-label="Search music">
+          <header class="search-panel-head">
+            <div class="search-wrap">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                id="searchPanelInput"
+                type="search"
+                placeholder="搜索单曲、专辑、歌手、歌单"
+              />
+            </div>
+            <button class="round-button" id="closeSearchButton" type="button" aria-label="Close search">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
+          <div class="search-results">
+            <section>
+              <strong>单曲</strong>
+              <div id="searchSongResults"></div>
+            </section>
+            <section>
+              <strong>专辑</strong>
+              <div id="searchAlbumResults"></div>
+            </section>
+            <section>
+              <strong>歌手</strong>
+              <div id="searchArtistResults"></div>
+            </section>
+            <section>
+              <strong>歌单</strong>
+              <div id="searchPlaylistResults"></div>
+            </section>
+          </div>
+        </aside>
+
+        <div class="album-scrim" id="albumScrim" hidden></div>
+        <aside class="detail-drawer" id="albumDrawer" aria-label="Album detail">
+          <div class="queue-handle" aria-hidden="true"></div>
+          <header class="detail-head">
+            <div class="detail-cover"><img id="albumDetailCover" alt="" /></div>
+            <div>
+              <strong id="albumDetailTitle">Album</strong>
+              <span id="albumDetailSubtitle">0 tracks</span>
+              <small id="albumDetailMeta"></small>
+            </div>
+            <button class="round-button" id="closeAlbumButton" type="button" aria-label="Close album">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
+          <div class="collection-toolbar">
+            <button type="button" id="albumPlayAllButton">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7-11-7Z" />
+              </svg>
+              <span>Play All</span>
+            </button>
+          </div>
+          <div class="collection-list" id="albumSongList"></div>
+        </aside>
+
+        <div class="artist-scrim" id="artistScrim" hidden></div>
+        <aside class="detail-drawer" id="artistDrawer" aria-label="Artist detail">
+          <div class="queue-handle" aria-hidden="true"></div>
+          <header class="collection-head">
+            <div>
+              <strong id="artistDetailTitle">Artist</strong>
+              <span id="artistDetailSubtitle">0 tracks</span>
+            </div>
+            <button class="round-button" id="closeArtistButton" type="button" aria-label="Close artist">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
+          <div class="collection-toolbar">
+            <button type="button" id="artistPlayAllButton">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7-11-7Z" />
+              </svg>
+              <span>Play All</span>
+            </button>
+          </div>
+          <section class="detail-section">
+            <strong>Albums</strong>
+            <div class="detail-chip-list" id="artistAlbumList"></div>
+          </section>
+          <section class="detail-section">
+            <strong>Songs</strong>
+            <div class="collection-list" id="artistSongList"></div>
+          </section>
+        </aside>
+
+        <section class="player-sheet" id="playerSheet" aria-label="Player page">
+          <img class="sheet-backdrop" id="sheetBackdrop" alt="" />
+          <div class="sheet-content">
+            <header class="sheet-header">
+              <button
+                class="round-button"
+                id="closeSheetButton"
+                type="button"
+                aria-label="Close player page"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="sheet-heading">
+                <strong id="sheetHeaderTitle">Nothing playing</strong>
+                <p id="sheetHeaderArtist"></p>
+              </div>
+              <button
+                class="round-button"
+                id="sheetRefreshButton"
+                type="button"
+                aria-label="Refresh library"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M20 6v5h-5" />
+                  <path d="M4 18v-5h5" />
+                  <path d="M18.5 9A7 7 0 0 0 6.7 5.9L4 8.5" />
+                  <path d="M5.5 15A7 7 0 0 0 17.3 18.1L20 15.5" />
+                </svg>
+              </button>
+            </header>
+
+            <div class="sheet-view-tabs" id="sheetViewTabs" role="tablist" aria-label="Player views">
+              <button class="active" id="coverTab" type="button" data-view="cover">Cover</button>
+              <button id="lyricsTab" type="button" data-view="lyrics">Lyrics</button>
+            </div>
+
+            <div class="sheet-stage" id="sheetStage">
+              <div class="sheet-view cover-view active" id="coverView">
+                <div class="sheet-cover-stage">
+                  <div class="sheet-cover-wrap">
+                    <img id="sheetCover" alt="" />
+                    <span id="sheetCoverEmpty"></span>
+                  </div>
+                </div>
+                <div class="sheet-track">
+                  <h2 id="sheetTitle">Nothing playing</h2>
+                  <p id="sheetArtist"></p>
+                </div>
+              </div>
+
+              <div class="sheet-view lyrics-view" id="lyricsView" hidden>
+                <div class="lyrics-meta">
+                  <strong id="lyricsTitle">Nothing playing</strong>
+                  <span id="lyricsArtist"></span>
+                </div>
+                <div class="sheet-lyrics" id="sheetLyrics"></div>
+              </div>
+            </div>
+
+            <div class="sheet-actions">
+              <button type="button" id="favoriteButton" aria-pressed="false">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+                </svg>
+                <span>Favorite</span>
+              </button>
+              <button type="button" id="addPlaylistButton" aria-pressed="false">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 6h11" />
+                  <path d="M4 12h11" />
+                  <path d="M4 18h7" />
+                  <path d="M18 15v6" />
+                  <path d="M15 18h6" />
+                </svg>
+                <span>Playlist</span>
+              </button>
+              <button type="button" id="sheetInfoButton">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v5" />
+                  <path d="M12 8h.01" />
+                </svg>
+                <span>Info</span>
+              </button>
+              <button type="button" id="sheetMoreButton">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M12 12h.01" />
+                  <path d="M19 12h.01" />
+                  <path d="M5 12h.01" />
+                </svg>
+                <span>More</span>
+              </button>
+            </div>
+
+            <div class="sheet-time-row">
+              <span id="sheetCurrentTime">0:00</span>
+              <span class="quality-label">Local Audio</span>
+              <span id="sheetDuration">0:00</span>
+            </div>
+            <input
+              id="sheetSeek"
+              type="range"
+              min="0"
+              max="1000"
+              value="0"
+              aria-label="Playback progress"
+            />
+
+            <div class="sheet-controls">
+              <button
+                class="round-button"
+                id="sheetModeButton"
+                type="button"
+                aria-label="Play mode"
+              >
+                <span class="icon-slot" id="sheetModeIcon" aria-hidden="true"></span>
+              </button>
+              <button
+                class="round-button"
+                id="sheetPrevButton"
+                type="button"
+                aria-label="Previous track"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M6 5v14" />
+                  <path d="m19 6-10 6 10 6V6Z" />
+                </svg>
+              </button>
+              <button
+                class="play-button sheet-play"
+                id="sheetPlayButton"
+                type="button"
+                aria-label="Play"
+              >
+                <span class="icon-slot" id="sheetPlayIcon" aria-hidden="true"></span>
+              </button>
+              <button
+                class="round-button"
+                id="sheetNextButton"
+                type="button"
+                aria-label="Next track"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M18 5v14" />
+                  <path d="m5 6 10 6-10 6V6Z" />
+                </svg>
+              </button>
+              <button
+                class="round-button"
+                id="sheetQueueButton"
+                type="button"
+                aria-label="Queue"
+              >
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M8 6h13" />
+                  <path d="M8 12h13" />
+                  <path d="M8 18h13" />
+                  <path d="M3 6h.01" />
+                  <path d="M3 12h.01" />
+                  <path d="M3 18h.01" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="queue-scrim" id="queueScrim" hidden></div>
+            <div class="info-scrim" id="infoScrim" hidden></div>
+            <div class="playlist-scrim" id="playlistScrim" hidden></div>
+            <div class="more-scrim" id="moreScrim" hidden></div>
+            <div class="sleep-scrim" id="sleepScrim" hidden></div>
+            <aside class="queue-drawer" id="queueDrawer" aria-label="Playing queue">
+              <div class="queue-handle" aria-hidden="true"></div>
+              <header class="queue-drawer-head">
+                <div>
+                  <strong>Playing Queue</strong>
+                  <span id="queueCount">0 tracks</span>
+                </div>
+                <button
+                  class="round-button"
+                  id="closeQueueButton"
+                  type="button"
+                  aria-label="Close queue"
+                >
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </header>
+              <div class="queue-toolbar">
+                <button type="button" id="queueModeButton">
+                  <span class="icon-slot" id="queueModeIcon" aria-hidden="true"></span>
+                  <span>Play Mode</span>
+                </button>
+                <button type="button" id="clearQueueButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4h8v2" />
+                    <path d="m19 6-1 14H6L5 6" />
+                  </svg>
+                  <span>Clear</span>
+                </button>
+              </div>
+              <div class="sheet-queue" id="sheetQueue"></div>
+            </aside>
+            <aside class="info-drawer" id="infoDrawer" aria-label="Song information">
+              <div class="queue-handle" aria-hidden="true"></div>
+              <header class="queue-drawer-head">
+                <div>
+                  <strong>Song Info</strong>
+                  <span id="infoSubtitle">Current track</span>
+                </div>
+                <button
+                  class="round-button"
+                  id="closeInfoButton"
+                  type="button"
+                  aria-label="Close song information"
+                >
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </header>
+              <dl class="info-list" id="infoList"></dl>
+            </aside>
+            <aside class="playlist-drawer" id="playlistDrawer" aria-label="Save to playlist">
+              <div class="queue-handle" aria-hidden="true"></div>
+              <header class="queue-drawer-head">
+                <div>
+                  <strong>Save to Mix</strong>
+                  <span id="playlistSubtitle">Add current song</span>
+                </div>
+                <div class="playlist-mode-tabs" aria-hidden="true">
+                  <span>常用</span>
+                  <i></i>
+                  <span>多选</span>
+                </div>
+                <button
+                  class="round-button"
+                  id="closePlaylistButton"
+                  type="button"
+                  aria-label="Close playlists"
+                >
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </header>
+              <button class="new-mix-row" id="newMixButton" type="button">
+                <span>+</span>
+                <strong>New Mix</strong>
+              </button>
+              <form class="playlist-create" id="playlistCreateForm" hidden>
+                <input
+                  id="playlistNameInput"
+                  type="text"
+                  maxlength="40"
+                  placeholder="New playlist name"
+                  aria-label="New playlist name"
+                />
+                <button type="submit">Create</button>
+              </form>
+              <div class="playlist-picker-list" id="playlistPickerList"></div>
+            </aside>
+            <aside class="more-drawer" id="moreDrawer" aria-label="More song actions">
+              <div class="queue-handle" aria-hidden="true"></div>
+              <header class="queue-drawer-head">
+                <div>
+                  <strong>More</strong>
+                  <span id="moreSubtitle">Current track</span>
+                </div>
+                <button
+                  class="round-button"
+                  id="closeMoreButton"
+                  type="button"
+                  aria-label="Close more actions"
+                >
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </header>
+              <div class="more-action-list">
+                <button type="button" id="moreFavoriteButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+                  </svg>
+                  <span>Favorite</span>
+                </button>
+                <button type="button" id="morePlaylistButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 6h11" />
+                    <path d="M4 12h11" />
+                    <path d="M4 18h7" />
+                    <path d="M18 15v6" />
+                    <path d="M15 18h6" />
+                  </svg>
+                  <span>Add to playlist</span>
+                </button>
+                <button type="button" id="moreInfoButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 11v5" />
+                    <path d="M12 8h.01" />
+                  </svg>
+                  <span>Song info</span>
+                </button>
+                <button type="button" id="moreQueueButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M8 6h13" />
+                    <path d="M8 12h13" />
+                    <path d="M8 18h13" />
+                    <path d="M3 6h.01" />
+                    <path d="M3 12h.01" />
+                    <path d="M3 18h.01" />
+                  </svg>
+                  <span>Playing queue</span>
+                </button>
+                <button type="button" id="moreSpeedButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 19V5" />
+                    <path d="M4 12h16" />
+                    <path d="m14 6 6 6-6 6" />
+                  </svg>
+                  <span>Speed <b id="speedValue">1x</b></span>
+                </button>
+                <button type="button" id="moreSleepButton">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                  <span>Sleep timer</span>
+                </button>
+              </div>
+            </aside>
+            <aside class="sleep-drawer" id="sleepDrawer" aria-label="Sleep timer">
+              <div class="queue-handle" aria-hidden="true"></div>
+              <header class="queue-drawer-head">
+                <div>
+                  <strong>Sleep Timer</strong>
+                  <span id="sleepTimerStatus">Off</span>
+                </div>
+                <button class="round-button" id="closeSleepButton" type="button" aria-label="Close sleep timer">
+                  <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </header>
+              <div class="sleep-options">
+                <button type="button" data-sleep="15">15 min</button>
+                <button type="button" data-sleep="30">30 min</button>
+                <button type="button" data-sleep="60">60 min</button>
+                <button type="button" data-sleep="song">After current song</button>
+                <button type="button" data-sleep="list">After current list</button>
+                <button type="button" data-sleep="off">Turn off</button>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

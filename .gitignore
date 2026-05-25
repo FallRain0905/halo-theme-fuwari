@@ -26,3 +26,19 @@ pnpm-debug.log*
 templates/
 _fuwari
 public/assets/music/library/
+music-library.db
+reference/
+
+# local media workspaces
+music-source/
+mv-source/
+
+# local backup/secrets artifacts
+*.tar.gz
+*.tar.gz.gpg
+*.cos.yaml
+passwd-cosfs
+
+# mobile build artifacts
+*.apk
+*.aab

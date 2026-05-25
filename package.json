@@ -10,6 +10,12 @@
     "build:only": "astro build",
     "music:generate": "node scripts/generate-music-library.mjs",
     "ncm:convert": "node scripts/convert-ncm-library.mjs",
+    "bili:audio": "node scripts/download-bili-audio.mjs",
+    "bili:gui": "node scripts/bili-audio-gui.mjs",
+    "bili:video": "node scripts/download-bili-video.mjs",
+    "bili:video-gui": "node scripts/bili-video-gui.mjs",
+    "mv:optimize": "node scripts/optimize-mv-library.mjs",
+    "mv:generate": "node scripts/generate-mv-library.mjs",
     "package": "theme-package",
     "astro": "astro",
     "format": "prettier --write .",
@@ -75,7 +81,8 @@
     "nodemon": "^3.1.14",
     "prettier": "3.8.1",
     "prettier-plugin-astro": "0.14.1",
-    "unplugin-icons": "^23.0.1"
+    "unplugin-icons": "^23.0.1",
+    "vite": "^7.3.2"
   },
   "lint-staged": {
     "*.{astro,css,js,mjs,cjs,ts,vue,svelte,json,yaml,yml,md}": "prettier --write --ignore-unknown"

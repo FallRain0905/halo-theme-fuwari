@@ -2,13 +2,14 @@
 import MainGridLayout from "../layouts/MainGridLayout.astro";
 import VideoCinema from "../components/video/VideoCinema.astro";
 import MusicLibrary from "../components/music/MusicLibrary.astro";
+import MvLibrary from "../components/mv/MvLibrary.astro";
 ---
 
 <MainGridLayout
   title="${singlePage.spec.title + ' - ' + site.title}"
   setOGTypeArticle={true}
   showToc={true}
-  wideExpression="${singlePage.metadata.name == 'music' or singlePage.spec.slug == 'music'}"
+  wideExpression="${singlePage.metadata.name == 'music' or singlePage.spec.slug == 'music' or singlePage.metadata.name == 'mv' or singlePage.metadata.name == 'mvs' or singlePage.spec.slug == 'mv' or singlePage.spec.slug == 'mvs'}"
 >
   <Fragment slot="head">
     <title th:text="${singlePage.spec.title + ' - ' + site.title}"></title>
@@ -55,9 +56,16 @@ import MusicLibrary from "../components/music/MusicLibrary.astro";
     </section>
   </div>
 
+  <!-- MV Library -->
+  <div
+    th:if="${singlePage.metadata.name == 'mv' or singlePage.metadata.name == 'mvs' or singlePage.spec.slug == 'mv' or singlePage.spec.slug == 'mvs'}"
+  >
+    <MvLibrary />
+  </div>
+
   <!-- Normal page content -->
   <article
-    th:if="${singlePage.metadata.name != 'videos' and singlePage.metadata.name != 'video' and singlePage.spec.slug != 'videos' and singlePage.spec.slug != 'video' and singlePage.metadata.name != 'music' and singlePage.spec.slug != 'music'}"
+    th:if="${singlePage.metadata.name != 'videos' and singlePage.metadata.name != 'video' and singlePage.spec.slug != 'videos' and singlePage.spec.slug != 'video' and singlePage.metadata.name != 'music' and singlePage.spec.slug != 'music' and singlePage.metadata.name != 'mv' and singlePage.metadata.name != 'mvs' and singlePage.spec.slug != 'mv' and singlePage.spec.slug != 'mvs'}"
     class="card-base relative z-10 mb-4 w-full px-6 pb-8 pt-7 md:px-9"
   >
     <h1

@@ -1,0 +1,400 @@
+---
+import { Icon } from "astro-icon/components";
+
+const libraryId = `mv-library-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<section
+  id={libraryId}
+  class="mv-library card-base onload-animation mb-4 overflow-hidden"
+  data-mv-url="/mv-library/mv.json"
+>
+  <div class="border-b border-(--line-color) px-6 py-6 md:px-8">
+    <div
+      class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"
+    >
+      <div class="min-w-0">
+        <h1 class="mv-page-title text-3xl font-bold text-90">MV Library</h1>
+        <p class="mt-2 text-sm text-50">
+          <span class="mv-count">0 MVs</span>
+          <span class="mx-2 text-30">/</span>
+          <span class="mv-status">Loading</span>
+        </p>
+      </div>
+
+      <div class="flex w-full flex-col gap-3 xl:max-w-xl">
+        <label class="relative block">
+          <Icon
+            name="material-symbols:search-rounded"
+            class="pointer-events-none absolute left-3 top-1/2 text-xl text-30 -translate-y-1/2"
+            aria-hidden="true"
+          />
+          <input
+            class="mv-search h-11 w-full rounded-lg border border-(--line-color) bg-(--card-bg) pl-10 pr-3 text-sm text-75 outline-none transition focus:border-(--primary)"
+            type="search"
+            autocomplete="off"
+            placeholder="Search title, uploader, or source"
+            aria-label="Search MV"
+          />
+        </label>
+      </div>
+    </div>
+    <div
+      class="mv-section-tabs mt-5 flex gap-2 overflow-x-auto pb-1"
+      aria-label="MV categories"
+    >
+    </div>
+  </div>
+
+  <div class="p-4 md:p-6">
+    <div
+      class="mv-empty hidden rounded-xl border border-dashed border-(--line-color) px-6 py-16 text-center text-50"
+    >
+      No MVs
+    </div>
+    <div
+      class="mv-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+    >
+    </div>
+  </div>
+
+  <template class="mv-card-template">
+    <article
+      class="mv-card group overflow-hidden rounded-xl border border-(--line-color) bg-(--card-bg) transition hover:-translate-y-0.5 hover:border-(--primary)/50 hover:shadow-lg"
+    >
+      <button type="button" class="mv-card-button block w-full text-left">
+        <div
+          class="relative aspect-video overflow-hidden bg-(--btn-regular-bg)"
+        >
+          <img
+            class="mv-cover h-full w-full object-cover opacity-0 transition duration-300 group-hover:scale-105"
+            src=""
+            alt=""
+            loading="lazy"
+          />
+          <div
+            class="mv-cover-fallback absolute inset-0 flex items-center justify-center text-(--primary)"
+          >
+            <Icon
+              name="material-symbols:movie-rounded"
+              class="text-6xl opacity-35"
+              aria-hidden="true"
+            />
+          </div>
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20"
+          >
+            <span
+              class="flex h-14 w-14 scale-90 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition group-hover:scale-100 group-hover:opacity-100"
+            >
+              <Icon
+                name="material-symbols:play-arrow-rounded"
+                class="ml-0.5 text-4xl"
+                aria-hidden="true"
+              />
+            </span>
+          </div>
+          <span
+            class="mv-duration absolute bottom-2 right-2 rounded bg-black/65 px-2 py-1 font-mono text-xs text-white"
+          >
+          </span>
+        </div>
+        <div class="p-4">
+          <h2 class="mv-title line-clamp-2 text-base font-bold text-90"></h2>
+          <p class="mv-artist mt-1 truncate text-sm text-50"></p>
+          <div class="mt-3 flex items-center justify-between gap-3 text-xs">
+            <span
+              class="mv-category truncate rounded-full bg-(--btn-regular-bg) px-2.5 py-1 font-bold text-50"
+            >
+            </span>
+            <a
+              class="mv-source hidden shrink-0 font-bold text-(--primary) hover:underline"
+              href=""
+              target="_blank"
+              rel="noreferrer"
+              onclick="event.stopPropagation()"
+            >
+              Source
+            </a>
+          </div>
+        </div>
+      </button>
+    </article>
+  </template>
+
+  <div
+    class="mv-modal fixed inset-0 z-[9999] hidden items-center justify-center bg-black/82 p-0 backdrop-blur-sm md:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-label="MV player"
+  >
+    <div
+      class="mv-modal-panel grid h-[100dvh] w-full overflow-hidden bg-[#0d0f14] shadow-2xl md:h-auto md:max-h-[94dvh] md:max-w-7xl md:rounded-xl md:border md:border-white/10"
+    >
+      <div
+        class="mv-modal-header flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2.5 md:px-4 md:py-3"
+      >
+        <button
+          type="button"
+          class="mv-close btn-plain flex h-10 shrink-0 items-center gap-1 rounded-lg px-3 text-white/80"
+          aria-label="Back to MV list"
+        >
+          <Icon
+            name="material-symbols:arrow-back-rounded"
+            class="text-2xl"
+            aria-hidden="true"
+          />
+          <span class="hidden text-sm font-bold sm:inline">Back</span>
+        </button>
+        <div class="min-w-0 flex-1 text-center">
+          <h2 class="mv-modal-title truncate text-base font-bold text-white">
+          </h2>
+          <p class="mv-modal-meta truncate text-sm text-white/55"></p>
+        </div>
+        <button
+          type="button"
+          class="mv-close btn-plain h-10 w-10 shrink-0 rounded-lg text-white/70"
+          aria-label="Close player"
+        >
+          <Icon
+            name="material-symbols:close-rounded"
+            class="text-2xl"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+      <video
+        class="mv-player w-full bg-black"
+        controls
+        playsinline
+        preload="metadata"
+      >
+      </video>
+      <div
+        class="mv-modal-description max-h-28 overflow-y-auto px-4 py-3 text-sm leading-6 text-white/60 md:max-h-32"
+      >
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.currentScript?.previousElementSibling;
+    if (!root || root.dataset.initialized === "true") return;
+    root.dataset.initialized = "true";
+
+    const ui = {
+      title: root.querySelector(".mv-page-title"),
+      count: root.querySelector(".mv-count"),
+      status: root.querySelector(".mv-status"),
+      search: root.querySelector(".mv-search"),
+      tabs: root.querySelector(".mv-section-tabs"),
+      grid: root.querySelector(".mv-grid"),
+      empty: root.querySelector(".mv-empty"),
+      template: root.querySelector(".mv-card-template"),
+      modal: root.querySelector(".mv-modal"),
+      modalTitle: root.querySelector(".mv-modal-title"),
+      modalMeta: root.querySelector(".mv-modal-meta"),
+      modalDescription: root.querySelector(".mv-modal-description"),
+      close: root.querySelector(".mv-close"),
+      player: root.querySelector(".mv-player"),
+    };
+
+    const state = {
+      mvs: [],
+      filtered: [],
+      category: "",
+      modalMounted: false,
+    };
+
+    const text = (value) => String(value || "").trim();
+    const lower = (value) => text(value).toLowerCase();
+    const normalize = (value) => text(value);
+
+    const joinId = (mv, index) =>
+      normalize(mv.id) ||
+      normalize(mv.bvid) ||
+      `${normalize(mv.title) || "mv"}-${index}`;
+
+    const normalizeMvs = (data) => {
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.mvs)
+          ? data.mvs
+          : [];
+      return list
+        .map((mv, index) => ({
+          id: joinId(mv, index),
+          title: normalize(mv.title) || `MV ${index + 1}`,
+          artist: normalize(mv.artist || mv.uploader) || "Unknown",
+          category: normalize(mv.category) || "Uncategorized",
+          cover: normalize(mv.cover || mv.thumbnail || mv.pic),
+          url: normalize(mv.url || mv.src),
+          source: normalize(mv.source || mv.webpage_url),
+          bvid: normalize(mv.bvid),
+          duration: normalize(mv.duration),
+          description: normalize(mv.description),
+        }))
+        .filter((mv) => mv.url);
+    };
+
+    const uniqueCategories = () => [
+      ...new Set(state.mvs.map((mv) => mv.category).filter(Boolean)),
+    ];
+
+    const setCover = (img, fallback, src) => {
+      img.classList.add("opacity-0");
+      fallback.classList.remove("hidden");
+      img.removeAttribute("src");
+      if (!src) return;
+      img.onload = () => {
+        img.classList.remove("opacity-0");
+        fallback.classList.add("hidden");
+      };
+      img.onerror = () => {
+        img.classList.add("opacity-0");
+        fallback.classList.remove("hidden");
+      };
+      img.src = src;
+    };
+
+    const updateTabs = () => {
+      ui.tabs.innerHTML = "";
+      const categories = uniqueCategories();
+      const all = document.createElement("button");
+      all.type = "button";
+      all.className =
+        "mv-section-tab btn-card h-10 shrink-0 rounded-lg px-4 text-sm font-bold text-75 transition";
+      all.textContent = "All";
+      all.dataset.category = "";
+      ui.tabs.appendChild(all);
+
+      categories.forEach((category) => {
+        const button = all.cloneNode(true);
+        button.textContent = category;
+        button.dataset.category = category;
+        ui.tabs.appendChild(button);
+      });
+
+      ui.tabs.querySelectorAll(".mv-section-tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.category = button.dataset.category || "";
+          applyFilter();
+        });
+      });
+      updateActiveTab();
+    };
+
+    const updateActiveTab = () => {
+      ui.tabs.querySelectorAll(".mv-section-tab").forEach((button) => {
+        const active = (button.dataset.category || "") === state.category;
+        button.classList.toggle("bg-(--primary)", active);
+        button.classList.toggle("text-white", active);
+        button.classList.toggle("dark:text-black/70", active);
+      });
+    };
+
+    const render = () => {
+      ui.grid.innerHTML = "";
+      ui.empty.classList.toggle("hidden", state.filtered.length > 0);
+      state.filtered.forEach((mv) => {
+        const clone = ui.template.content.cloneNode(true);
+        const button = clone.querySelector(".mv-card-button");
+        const img = clone.querySelector(".mv-cover");
+        const fallback = clone.querySelector(".mv-cover-fallback");
+        const source = clone.querySelector(".mv-source");
+        clone.querySelector(".mv-title").textContent = mv.title;
+        clone.querySelector(".mv-artist").textContent = mv.artist;
+        clone.querySelector(".mv-category").textContent = mv.category;
+        clone.querySelector(".mv-duration").textContent = mv.duration || "MV";
+        setCover(img, fallback, mv.cover);
+        if (mv.source) {
+          source.classList.remove("hidden");
+          source.href = mv.source;
+        }
+        button.addEventListener("click", () => openModal(mv));
+        ui.grid.appendChild(clone);
+      });
+    };
+
+    const applyFilter = () => {
+      const q = lower(ui.search.value);
+      state.filtered = state.mvs.filter((mv) => {
+        const matchesQuery =
+          !q ||
+          lower(mv.title).includes(q) ||
+          lower(mv.artist).includes(q) ||
+          lower(mv.category).includes(q) ||
+          lower(mv.bvid).includes(q);
+        return (
+          matchesQuery && (!state.category || mv.category === state.category)
+        );
+      });
+      ui.count.textContent = `${state.filtered.length} / ${state.mvs.length} MVs`;
+      updateActiveTab();
+      render();
+    };
+
+    const openModal = (mv) => {
+      if (!state.modalMounted) {
+        document.body.appendChild(ui.modal);
+        state.modalMounted = true;
+      }
+      ui.modalTitle.textContent = mv.title;
+      ui.modalMeta.textContent = [mv.artist, mv.category, mv.duration]
+        .filter(Boolean)
+        .join(" / ");
+      ui.modalDescription.textContent = mv.description || mv.source || "";
+      ui.player.src = mv.url;
+      ui.modal.classList.remove("hidden");
+      ui.modal.classList.add("flex");
+      document.documentElement.classList.add("overflow-hidden");
+      document.body.classList.add("overflow-hidden");
+      ui.player.play?.().catch(() => {});
+    };
+
+    const closeModal = () => {
+      ui.player.pause();
+      ui.player.removeAttribute("src");
+      ui.player.load();
+      ui.modal.classList.add("hidden");
+      ui.modal.classList.remove("flex");
+      document.documentElement.classList.remove("overflow-hidden");
+      document.body.classList.remove("overflow-hidden");
+    };
+
+    ui.search.addEventListener("input", applyFilter);
+    ui.close.addEventListener("click", closeModal);
+    ui.modal.addEventListener("click", (event) => {
+      if (event.target === ui.modal) closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !ui.modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+
+    const loadMvs = async () => {
+      ui.status.textContent = "Loading";
+      try {
+        const response = await fetch(root.dataset.mvUrl, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        state.mvs = normalizeMvs(data);
+        state.filtered = [...state.mvs];
+        updateTabs();
+        applyFilter();
+        ui.status.textContent = state.mvs.length
+          ? `${state.mvs.length} MVs`
+          : "No MVs";
+      } catch (error) {
+        ui.status.textContent = "Failed to load MVs";
+        ui.empty.classList.remove("hidden");
+        ui.empty.textContent = "Failed to load MVs";
+      }
+    };
+
+    loadMvs();
+  })();
+</script>

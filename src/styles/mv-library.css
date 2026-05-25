@@ -1,0 +1,48 @@
+.mv-library .mv-section-tabs {
+  scrollbar-width: none;
+}
+
+.mv-library .mv-section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mv-library .mv-card {
+  box-shadow: 0 18px 48px color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+.mv-library .mv-card-button {
+  min-height: 100%;
+}
+
+.mv-library .mv-cover {
+  transform: scale(1.01);
+}
+
+.mv-library .mv-modal {
+  overscroll-behavior: contain;
+}
+
+.mv-modal .mv-modal-panel {
+  grid-template-rows: auto minmax(0, auto) auto;
+}
+
+.mv-modal .mv-player {
+  display: block;
+  aspect-ratio: 16 / 9;
+  max-height: min(78dvh, calc(100dvh - 132px));
+  object-fit: contain;
+}
+
+.mv-modal .mv-modal-header {
+  min-height: 60px;
+}
+
+.mv-modal .mv-modal-description {
+  scrollbar-width: thin;
+}
+
+@media (max-width: 768px) {
+  .mv-modal .mv-player {
+    max-height: calc(100dvh - 152px);
+  }
+}
