@@ -371,6 +371,8 @@ const startBilibiliImport = async (payload) => {
       normalize(payload?.publicOutput) || config.publicOutput,
       "--public-base",
       normalize(payload?.publicBase) || config.publicBase,
+      "--generate-input",
+      normalize(payload?.generateInput) || config.musicSource,
       "--category-depth",
       String(Number(payload?.categoryDepth) || 1),
     );

@@ -155,6 +155,10 @@ async function createJob(payload) {
       "--public-base",
       optionalString(payload.publicBase) ||
         "/themes/theme-fuwari/assets/music/library",
+      "--generate-input",
+      optionalString(payload.generateInput) ||
+        optionalString(payload.output) ||
+        "music-source",
       "--category-depth",
       String(
         Number.isFinite(Number(payload.categoryDepth))

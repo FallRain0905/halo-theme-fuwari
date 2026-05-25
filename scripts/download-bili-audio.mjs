@@ -27,6 +27,7 @@ function parseArgs(argv) {
     generate: false,
     publicOutput: "/opt/music-library/public",
     publicBase: "/music-library",
+    generateInput: "",
     categoryDepth: 1,
     cleanPublic: false,
     syncUrl: "",
@@ -91,6 +92,9 @@ function parseArgs(argv) {
     } else if (arg === "--public-base") {
       args.publicBase = next;
       i += 1;
+    } else if (arg === "--generate-input") {
+      args.generateInput = next;
+      i += 1;
     } else if (arg === "--category-depth") {
       args.categoryDepth = Number.parseInt(next, 10);
       i += 1;
@@ -151,6 +155,8 @@ Options:
                                   Default: /opt/music-library/public
       --public-base <url>        URL prefix written to songs.json.
                                   Default: /music-library
+      --generate-input <dir>     Source root scanned by generate-music-library.
+                                  Default: same as --output
       --category-depth <n>       Passed to generate-music-library.mjs. Default: 1
       --clean-public             Clean public output before generation.
       --sync-url <url>           Optional Music API sync URL.
@@ -328,7 +334,7 @@ async function generateLibrary(args) {
   const commandArgs = [
     script,
     "--input",
-    args.output,
+    args.generateInput || args.output,
     "--output",
     args.publicOutput,
     "--public-base",

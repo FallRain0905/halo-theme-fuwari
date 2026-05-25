@@ -170,6 +170,33 @@ async function walk(dir) {
   return files;
 }
 
+async function readExistingSongs(file) {
+  if (!existsSync(file)) return [];
+  try {
+    const text = (await readFile(file, "utf8")).replace(/^\uFEFF/, "");
+    const data = JSON.parse(text);
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.songs)) return data.songs;
+  } catch (error) {
+    console.warn(`Failed to read existing songs JSON: ${file}`);
+    console.warn(`  ${error.message}`);
+  }
+  return [];
+}
+
+function songKey(song) {
+  const url = String(song?.url || song?.src || "").trim();
+  if (url) return `url:${decodeURIComponent(url).toLowerCase()}`;
+  return [
+    "meta",
+    song?.title || song?.name || "",
+    song?.artist || song?.author || "",
+    song?.album || "",
+  ]
+    .map((part) => String(part).trim().toLowerCase())
+    .join(":");
+}
+
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds <= 0) return "";
   const total = Math.round(seconds);
@@ -243,6 +270,7 @@ async function main() {
   const songsDir = path.join(outputDir, "songs");
   const coversDir = path.join(outputDir, "covers");
   const lyricsDir = path.join(outputDir, "lyrics");
+  const songsJson = path.join(outputDir, "songs.json");
 
   if (!existsSync(inputDir)) {
     throw new Error(`Input directory does not exist: ${inputDir}`);
@@ -390,13 +418,49 @@ async function main() {
     return a.title.localeCompare(b.title, "zh-Hans-CN");
   });
 
+  const mergedSongs = args.skipExisting
+    ? [...(await readExistingSongs(songsJson)), ...songs].reduce(
+        (result, song) => {
+          const key = songKey(song);
+          if (key) result.set(key, song);
+          return result;
+        },
+        new Map(),
+      )
+    : null;
+  const outputSongs = mergedSongs ? [...mergedSongs.values()] : songs;
+
+  outputSongs.sort((a, b) => {
+    const category = String(a.category || "").localeCompare(
+      String(b.category || ""),
+      "zh-Hans-CN",
+    );
+    if (category) return category;
+    const album = String(a.album || "").localeCompare(
+      String(b.album || ""),
+      "zh-Hans-CN",
+    );
+    if (album) return album;
+    const track = compareNullableNumber(Number(a.track), Number(b.track));
+    if (track) return track;
+    return String(a.title || "").localeCompare(
+      String(b.title || ""),
+      "zh-Hans-CN",
+    );
+  });
+
   await writeFile(
-    path.join(outputDir, "songs.json"),
-    `${JSON.stringify(songs, null, 2)}\n`,
+    songsJson,
+    `${JSON.stringify(outputSongs, null, 2)}\n`,
     "utf8",
   );
 
-  console.log(`Generated ${songs.length} song(s).`);
+  console.log(`Generated ${outputSongs.length} song(s).`);
+  if (mergedSongs) {
+    console.log(
+      `Merged ${songs.length} scanned song(s) with existing songs.json.`,
+    );
+  }
   console.log(`Output: ${toPosix(path.relative(cwd, outputDir))}`);
   console.log(`JSON URL: ${joinUrl(args.publicBase, "songs.json")}`);
 }
