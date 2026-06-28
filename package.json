@@ -21,7 +21,9 @@
     "package": "theme-package",
     "astro": "astro",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "photo:api": "pnpm --filter @fallrain/photo-api start",
+    "photo:sync": "pnpm --filter @fallrain/photo-api sync"
   },
   "prettier": {
     "plugins": [

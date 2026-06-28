@@ -288,8 +288,50 @@ const themeSettingScript = `<script type="application/json" id="theme-config" th
         itemData.w = Number(element.naturalWidth || window.innerWidth);
         itemData.h = Number(element.naturalHeight || window.innerHeight);
         itemData.msrc = element.src;
+        itemData.element = element;
       }
       return itemData;
+    });
+
+    lightbox.on("uiRegister", () => {
+      lightbox.pswp?.ui?.registerElement({
+        name: "fallrain-caption",
+        order: 9,
+        isButton: false,
+        appendTo: "root",
+        html: "",
+        onInit: (el, pswp) => {
+          const updateCaption = () => {
+            const image = pswp.currSlide?.data?.element;
+            el.replaceChildren();
+            if (!(image instanceof HTMLImageElement)) return;
+            const title = image.dataset.title || image.alt || "";
+            const detail = [
+              image.dataset.album,
+              image.dataset.date,
+              image.dataset.camera,
+              image.dataset.lens,
+              image.dataset.tags,
+            ]
+              .filter(Boolean)
+              .join(" \u00b7 ");
+            const description = image.dataset.description || "";
+            if (!title && !detail && !description) return;
+            const caption = document.createElement("div");
+            caption.className = "pswp-fallrain-caption";
+            const heading = document.createElement("strong");
+            heading.textContent = title;
+            const meta = document.createElement("span");
+            meta.textContent = detail;
+            const body = document.createElement("p");
+            body.textContent = description;
+            caption.append(heading, meta, body);
+            el.append(caption);
+          };
+          pswp.on("change", updateCaption);
+          updateCaption();
+        },
+      });
     });
 
     lightbox.init();
@@ -372,6 +414,10 @@ const themeSettingScript = `<script type="application/json" id="theme-config" th
   init();
 
   let lightbox = initPhotoSwipe();
+  window.addEventListener("fuwari:photos-updated", () => {
+    lightbox?.destroy?.();
+    lightbox = initPhotoSwipe();
+  });
 
   function restoreOriginalHistoryStateHandlers() {
     const originalHistory = window.__fuwariOriginalHistory;

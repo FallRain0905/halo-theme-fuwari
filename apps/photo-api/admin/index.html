@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Admin</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">FallRain Gallery</p>
+          <h1>Photo Admin</h1>
+          <p class="muted">Upload, tag, organize, and publish your self-hosted photo library.</p>
+        </div>
+        <div class="hero-actions authenticated-only" hidden>
+          <button id="sync-button" class="ghost">Refresh Index</button>
+          <button id="logout-button" class="ghost">Logout</button>
+        </div>
+      </section>
+
+      <section id="login-panel" class="panel narrow">
+        <h2>Login</h2>
+        <form id="login-form" class="stack">
+          <label>
+            Email
+            <input name="email" type="email" value="admin@123.com" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" value="admin123" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Login</button>
+        </form>
+      </section>
+
+      <section class="grid authenticated-only" hidden>
+        <form id="upload-form" class="panel upload-panel">
+          <div class="section-head">
+            <div>
+              <h2>Upload Photos</h2>
+              <p class="muted">JPEG, PNG, WebP, AVIF. Large and thumbnail WebP files are generated automatically.</p>
+            </div>
+          </div>
+          <label class="drop-zone">
+            <input id="file-input" name="files" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple />
+            <span class="drop-title">Choose photos</span>
+            <span id="file-summary" class="muted">No files selected</span>
+          </label>
+          <div class="two-col">
+            <label>
+              Album
+              <input name="album" placeholder="旅行 / 日常 / Live" />
+            </label>
+            <label>
+              Tags
+              <input name="tags" placeholder="城市, 夜景, 胶片" />
+            </label>
+          </div>
+          <label>
+            Title
+            <input name="title" placeholder="Leave empty to use filename" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="Optional note"></textarea>
+          </label>
+          <button type="submit">Upload and Publish</button>
+        </form>
+
+        <section class="panel library-panel">
+          <div class="section-head">
+            <div>
+              <h2>Library</h2>
+              <p id="library-meta" class="muted">Loading...</p>
+            </div>
+            <input id="admin-search" class="search" placeholder="Search title, album, tags" />
+          </div>
+          <div id="admin-list" class="admin-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="edit-dialog">
+      <form id="edit-form" method="dialog" class="panel dialog-panel">
+        <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+        <h2>Edit Photo</h2>
+        <img id="edit-preview" alt="" />
+        <input name="id" type="hidden" />
+        <label>
+          Title
+          <input name="title" />
+        </label>
+        <label>
+          Album
+          <input name="album" />
+        </label>
+        <label>
+          Tags
+          <input name="tags" />
+        </label>
+        <label>
+          Description
+          <textarea name="description" rows="3"></textarea>
+        </label>
+        <div class="dialog-actions">
+          <button id="delete-button" type="button" class="danger">Delete</button>
+          <button value="save" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

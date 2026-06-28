@@ -42,3 +42,9 @@ passwd-cosfs
 # mobile build artifacts
 *.apk
 *.aab
+.astro-test-output/
+.pnpm-store-local/
+.npm-cache-local/
+_tmp_*
+package.json~*
+pnpm-lock.yaml.*

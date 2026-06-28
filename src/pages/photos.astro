@@ -1,74 +1,515 @@
 ---
-import Pagination from "../components/control/Pagination.astro";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
 ---
 
-<MainGridLayout title="${title + ' - ' + site.title}">
+<MainGridLayout title="${title + ' - ' + site.title}" wideExpression="true">
   <Fragment slot="head">
     <title th:text="${title + ' - ' + site.title}"></title>
   </Fragment>
 
-  <section class="card-base onload-animation mb-4 px-6 py-6 md:px-9">
-    <div
-      class="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between"
-    >
-      <div>
-        <h1 class="text-3xl font-bold text-90" th:text="${title}">图库</h1>
-        <div class="mt-1 text-sm text-50">
-          <span th:text="#{page.photos.count(${photos.total})}">0 张图片</span>
-        </div>
+  <section class="card-base onload-animation mb-4 overflow-hidden px-0 py-0">
+    <div class="photo-hero px-6 py-7 md:px-9 md:py-9">
+      <div class="photo-hero-main">
+        <p class="photo-eyebrow">FallRain Gallery</p>
+        <h1 th:text="#{page.photos.title}">图库</h1>
+        <p class="photo-subtitle">
+          <span id="photos-count">正在加载图库...</span>
+        </p>
       </div>
-    </div>
-
-    <div
-      th:if="${not #lists.isEmpty(groups)}"
-      class="mb-6 flex flex-wrap gap-2"
-    >
       <a
-        th:href="@{/photos}"
-        th:classappend="${#lists.isEmpty(param.group) ? ' bg-(--primary) text-white dark:text-black/70' : ''}"
-        class="btn-card h-9 rounded-lg px-3 text-sm font-bold text-75"
-        th:text="#{common.all}">全部</a
+        class="photo-admin-link"
+        href="/photo-admin/"
+        target="_blank"
+        rel="noreferrer"
       >
-      <a
-        th:each="group : ${groups}"
-        th:href="@{/photos(group=${group.metadata.name})}"
-        th:classappend="${#lists.contains(param.group, group.metadata.name) ? ' bg-(--primary) text-white dark:text-black/70' : ''}"
-        class="btn-card h-9 rounded-lg px-3 text-sm font-bold text-75"
-      >
-        <span th:text="${group.spec.displayName}">Group</span>
-        <span class="ml-1 text-30" th:text="${group.status.photoCount}">0</span>
+        管理图库
       </a>
     </div>
 
+    <div class="photo-controls px-6 pb-6 md:px-9">
+      <label class="photo-search-wrap">
+        <span class="icon-[mingcute--search-line]"></span>
+        <input
+          id="photos-search"
+          type="search"
+          placeholder="搜索标题、相册、标签"
+          autocomplete="off"
+        />
+      </label>
+      <select id="photos-sort" aria-label="排序">
+        <option value="newest">最新优先</option>
+        <option value="oldest">最早优先</option>
+        <option value="title">标题 A-Z</option>
+      </select>
+    </div>
+
+    <div class="photo-filter-block px-6 pb-4 md:px-9">
+      <div>
+        <div class="photo-filter-title">相册</div>
+        <div id="album-filters" class="photo-chips"></div>
+      </div>
+      <div>
+        <div class="photo-filter-title">标签</div>
+        <div id="tag-filters" class="photo-chips"></div>
+      </div>
+    </div>
+
+    <div id="photos-status" class="photo-status px-6 pb-6 md:px-9">
+      正在加载...
+    </div>
     <div
       id="photos-gallery"
-      th:if="${not #lists.isEmpty(photos.items)}"
-      class="columns-1 sm:columns-2 xl:columns-3 gap-4"
+      class="photo-masonry px-6 pb-8 md:px-9"
+      aria-live="polite"
     >
-      <figure
-        th:each="photo, photoStat : ${photos.items}"
-        class="group relative overflow-hidden rounded-2xl bg-(--btn-regular-bg) transition duration-300 break-inside-avoid hover-card"
-        th:style="|animation-delay: calc(var(--content-delay) + ${photoStat.index * 50}ms)|"
-      >
-        <img
-          alt=""
-          th:src="${not #strings.isEmpty(photo.spec.cover) ? photo.spec.cover : photo.spec.url}"
-          th:attr="data-pswp-src=${photo.spec.url}"
-          th:alt="${photo.spec.displayName}"
-          loading="lazy"
-          class="aspect-4/3 w-full cursor-zoom-in object-cover transition duration-300 group-hover:scale-105"
-        />
-      </figure>
-    </div>
-
-    <div
-      th:if="${#lists.isEmpty(photos.items)}"
-      class="py-12 text-center text-50"
-    >
-      <span th:text="#{page.photos.empty}">暂无图片</span>
     </div>
   </section>
-
-  <Pagination context="photos" class="mb-4 onload-animation" />
 </MainGridLayout>
+
+<script is:inline>
+  (() => {
+    const state = {
+      photos: [],
+      albums: [],
+      tags: [],
+      query: "",
+      album: "",
+      tag: "",
+      sort: "newest",
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const gallery = $("#photos-gallery");
+    const status = $("#photos-status");
+    const count = $("#photos-count");
+    const search = $("#photos-search");
+    const sort = $("#photos-sort");
+
+    const escapeHtml = (value) =>
+      String(value ?? "").replace(
+        /[&<>"]/g,
+        (char) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+          })[char],
+      );
+
+    const formatDate = (value) => {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    };
+
+    const createSkeleton = () => {
+      gallery.innerHTML = Array.from({ length: 9 })
+        .map(
+          (_, index) =>
+            `<div class="photo-skeleton" style="height:${index % 3 === 0 ? 310 : index % 3 === 1 ? 240 : 360}px"></div>`,
+        )
+        .join("");
+    };
+
+    const chip = (label, countValue, active, kind, value) => `
+      <button class="photo-chip${active ? " is-active" : ""}" type="button" data-kind="${kind}" data-value="${escapeHtml(value)}">
+        <span>${escapeHtml(label)}</span>
+        ${Number.isFinite(countValue) ? `<small>${countValue}</small>` : ""}
+      </button>
+    `;
+
+    const renderFilters = () => {
+      $("#album-filters").innerHTML = [
+        chip("全部", state.photos.length, !state.album, "album", ""),
+        ...state.albums.map((album) =>
+          chip(
+            album.name,
+            album.count,
+            state.album === album.name,
+            "album",
+            album.name,
+          ),
+        ),
+      ].join("");
+      $("#tag-filters").innerHTML = [
+        chip("全部", state.photos.length, !state.tag, "tag", ""),
+        ...state.tags.map((tag) =>
+          chip(tag.name, tag.count, state.tag === tag.name, "tag", tag.name),
+        ),
+      ].join("");
+    };
+
+    const getFiltered = () => {
+      const q = state.query.toLowerCase();
+      const items = state.photos.filter((photo) => {
+        const matchAlbum = !state.album || photo.album === state.album;
+        const matchTag = !state.tag || (photo.tags || []).includes(state.tag);
+        const haystack =
+          `${photo.title} ${photo.description} ${photo.album} ${(photo.tags || []).join(" ")} ${photo.camera} ${photo.lens}`.toLowerCase();
+        const matchQuery = !q || haystack.includes(q);
+        return matchAlbum && matchTag && matchQuery;
+      });
+
+      return items.sort((a, b) => {
+        if (state.sort === "title")
+          return (a.title || "").localeCompare(b.title || "", "zh-Hans-CN");
+        const da = new Date(a.takenAt || a.createdAt || 0).getTime() || 0;
+        const db = new Date(b.takenAt || b.createdAt || 0).getTime() || 0;
+        return state.sort === "oldest" ? da - db : db - da;
+      });
+    };
+
+    const renderCards = () => {
+      const photos = getFiltered();
+      count.textContent = `${state.photos.length} 张图片，当前显示 ${photos.length} 张`;
+      status.hidden = photos.length > 0;
+      status.textContent = state.photos.length
+        ? "没有匹配的图片"
+        : "暂无图片，去后台上传第一张照片吧。";
+
+      gallery.innerHTML = photos
+        .map((photo, index) => {
+          const tags = (photo.tags || [])
+            .map((tag) => `<span>${escapeHtml(tag)}</span>`)
+            .join("");
+          const meta = [photo.album, formatDate(photo.takenAt), photo.camera]
+            .filter(Boolean)
+            .join(" · ");
+          const ratio =
+            photo.width && photo.height
+              ? `${photo.width} / ${photo.height}`
+              : "4 / 3";
+          return `
+            <figure class="photo-card" style="animation-delay:${Math.min(index * 35, 420)}ms">
+              <img
+                src="${escapeHtml(photo.thumb || photo.src)}"
+                data-pswp-src="${escapeHtml(photo.src)}"
+                data-title="${escapeHtml(photo.title)}"
+                data-description="${escapeHtml(photo.description)}"
+                data-album="${escapeHtml(photo.album)}"
+                data-tags="${escapeHtml((photo.tags || []).join(", "))}"
+                data-date="${escapeHtml(formatDate(photo.takenAt))}"
+                data-camera="${escapeHtml(photo.camera)}"
+                data-lens="${escapeHtml(photo.lens)}"
+                alt="${escapeHtml(photo.title)}"
+                loading="lazy"
+                style="aspect-ratio:${ratio}"
+              />
+              <figcaption>
+                <strong>${escapeHtml(photo.title || "未命名")}</strong>
+                <span>${escapeHtml(meta)}</span>
+                <div class="photo-card-tags">${tags}</div>
+              </figcaption>
+            </figure>
+          `;
+        })
+        .join("");
+
+      gallery.querySelectorAll("img").forEach((img) => {
+        if (img.complete) img.classList.add("is-loaded");
+        img.addEventListener("load", () => img.classList.add("is-loaded"), {
+          once: true,
+        });
+      });
+      requestAnimationFrame(() =>
+        window.dispatchEvent(new CustomEvent("fuwari:photos-updated")),
+      );
+    };
+
+    const update = () => {
+      renderFilters();
+      renderCards();
+    };
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest(".photo-chip");
+      if (!button) return;
+      const kind = button.dataset.kind;
+      if (kind === "album") state.album = button.dataset.value || "";
+      if (kind === "tag") state.tag = button.dataset.value || "";
+      update();
+    });
+
+    search.addEventListener("input", () => {
+      state.query = search.value.trim();
+      renderCards();
+    });
+    sort.addEventListener("change", () => {
+      state.sort = sort.value;
+      renderCards();
+    });
+
+    const load = async () => {
+      createSkeleton();
+      try {
+        const response = await fetch("/photo-library/photos.json", {
+          cache: "no-cache",
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        state.photos = Array.isArray(data.photos) ? data.photos : [];
+        state.albums = Array.isArray(data.albums) ? data.albums : [];
+        state.tags = Array.isArray(data.tags) ? data.tags : [];
+        update();
+      } catch (error) {
+        gallery.innerHTML = "";
+        count.textContent = "图库暂不可用";
+        status.hidden = false;
+        status.innerHTML = `无法读取 <code>/photo-library/photos.json</code>，请确认 photo-api 已生成图库数据。`;
+      }
+    };
+
+    load();
+  })();
+</script>
+
+<style>
+  .photo-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-end;
+    background:
+      linear-gradient(135deg, rgba(255, 93, 115, 0.12), transparent 42%),
+      linear-gradient(45deg, rgba(112, 214, 255, 0.12), transparent 36%);
+  }
+  .photo-eyebrow {
+    margin: 0 0 0.45rem;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .photo-hero h1 {
+    margin: 0;
+    color: rgb(var(--text-90));
+    font-size: clamp(2.1rem, 6vw, 4.6rem);
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+  .photo-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgb(var(--text-50));
+  }
+  .photo-admin-link,
+  .photo-chip,
+  #photos-sort {
+    border: 1px solid rgba(120, 120, 120, 0.18);
+    border-radius: 999px;
+    background: var(--btn-regular-bg);
+    color: rgb(var(--text-75));
+    font-weight: 800;
+  }
+  .photo-admin-link {
+    padding: 0.72rem 1rem;
+    white-space: nowrap;
+  }
+  .photo-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.8rem;
+  }
+  .photo-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 48px;
+    border: 1px solid rgba(120, 120, 120, 0.18);
+    border-radius: 999px;
+    background: var(--btn-regular-bg);
+    padding: 0 1rem;
+  }
+  .photo-search-wrap input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: rgb(var(--text-90));
+  }
+  #photos-sort {
+    min-height: 48px;
+    padding: 0 1rem;
+  }
+  .photo-filter-block {
+    display: grid;
+    gap: 0.85rem;
+  }
+  .photo-filter-title {
+    margin-bottom: 0.45rem;
+    color: rgb(var(--text-50));
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+  .photo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .photo-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 34px;
+    padding: 0 0.75rem;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      background 0.2s ease;
+  }
+  .photo-chip small {
+    color: rgb(var(--text-30));
+  }
+  .photo-chip.is-active {
+    background: var(--primary);
+    color: white;
+  }
+  .photo-status {
+    color: rgb(var(--text-50));
+  }
+  .photo-masonry {
+    columns: 1;
+    column-gap: 1rem;
+  }
+  .photo-card,
+  .photo-skeleton {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+    overflow: hidden;
+    border-radius: 1.35rem;
+    background: var(--btn-regular-bg);
+  }
+  .photo-card {
+    position: relative;
+    animation: photo-card-in 0.5s ease both;
+  }
+  .photo-card img {
+    display: block;
+    width: 100%;
+    min-height: 180px;
+    object-fit: cover;
+    opacity: 0;
+    filter: blur(18px);
+    transform: scale(1.02);
+    transition:
+      opacity 0.5s ease,
+      filter 0.5s ease,
+      transform 0.45s ease;
+    cursor: zoom-in;
+  }
+  .photo-card img.is-loaded {
+    opacity: 1;
+    filter: blur(0);
+  }
+  .photo-card:hover img {
+    transform: scale(1.055);
+  }
+  .photo-card figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 0.28rem;
+    padding: 3rem 1rem 1rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+    color: white;
+    transform: translateY(0.65rem);
+    opacity: 0;
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+  .photo-card:hover figcaption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .photo-card figcaption strong {
+    font-size: 1.05rem;
+  }
+  .photo-card figcaption span {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.82rem;
+  }
+  .photo-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .photo-card-tags span {
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    padding: 0.16rem 0.45rem;
+    font-size: 0.72rem;
+  }
+  .photo-skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(120, 120, 120, 0.1),
+      rgba(180, 180, 180, 0.2),
+      rgba(120, 120, 120, 0.1)
+    );
+    background-size: 220% 100%;
+    animation: photo-shimmer 1.4s ease-in-out infinite;
+  }
+  @media (min-width: 640px) {
+    .photo-masonry {
+      columns: 2;
+    }
+  }
+  @media (min-width: 1280px) {
+    .photo-masonry {
+      columns: 3;
+    }
+  }
+  @media (max-width: 640px) {
+    .photo-hero {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .photo-controls {
+      grid-template-columns: 1fr;
+    }
+    .photo-card figcaption {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes photo-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes photo-shimmer {
+    from {
+      background-position: 120% 0;
+    }
+    to {
+      background-position: -120% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .photo-card,
+    .photo-skeleton,
+    .photo-card img,
+    .photo-card figcaption,
+    .photo-chip {
+      animation: none !important;
+      transition: none !important;
+    }
+    .photo-card:hover img {
+      transform: none;
+    }
+  }
+</style>
